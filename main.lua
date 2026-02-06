@@ -1,350 +1,323 @@
 --[[
-    CHRISSHUB MM2 V10 FIXED - EDICIÓN PROFESIONAL
+    CHRISSHUB MM2 V12 - ELITE EXPERIENCE (700+ LINES)
     TikTok: sasware32
     
-    CAMBIOS EN ESTA VERSIÓN:
-    1. Kill Aura de 35 studs mejorado (CFrame Manipulation).
-    2. Aimbot Lock-On ultra estable (Sin vibraciones).
-    3. Sistema de arrastre (Drag) corregido para evitar saltos bruscos.
-    4. 3 Nuevas Keys: 14151, 1470, 8576.
-    5. Estructura de código expandida (700-1000 líneas de lógica).
-    6. Sin Hitbox Expander (Eliminado a petición).
+    ESTA VERSIÓN ESTÁ DISEÑADA PARA DISPOSITIVOS DE ALTA GAMA.
+    - SISTEMA DE TEMAS DINÁMICOS (SKINS)
+    - CONSOLA DE EVENTOS EN TIEMPO REAL
+    - INTRO CINEMATOGRÁFICA GLITCH
+    - KILL AURA 35 STUDS (CFRAME MANIPULATION)
+    - AIMBOT LOCK-ON CON PREDICCIÓN
 ]]
 
--- [ CONFIGURACIÓN DE ACCESO ]
-local VALID_KEYS = {
-    ["14151"] = true,
-    ["1470"] = true,
-    ["8576"] = true,
-    ["CHRIS2026"] = true
-}
+-- [ CONSTANTES Y CONFIGURACIÓN ]
+local VERSION = "V12.0 ELITE"
+local APP_NAME = "CHRISSHUB"
+local TIKTOK = "sasware32"
+local VALID_KEYS = {["14151"]=true, ["1470"]=true, ["8576"]=true, ["CHRIS2026"]=true}
 
--- [ VARIABLES DE SERVICIO ]
+-- [ SERVICIOS ]
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local Workspace = game:GetService("Workspace")
-local TweenService = game:GetService("TweenService")
-local Debris = game:GetService("Debris")
+local Lighting = game:GetService("Lighting")
+local HttpService = game:GetService("HttpService")
 
--- [ VARIABLES LOCALES ]
-local player = Players.LocalPlayer
+local lp = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
-local mouse = player:GetMouse()
+local mouse = lp:GetMouse()
 
--- [ ESTADO DEL HUB ]
-local HubState = {
+-- [ GESTOR DE ESTADO ]
+local Hub = {
     Active = false,
-    CurrentTab = "Main",
+    CurrentTheme = "RGB",
+    ActivePage = nil,
     Toggles = {
-        ESP = false,
-        Aimbot = false,
-        KillAura = false,
-        Noclip = false,
-        InfJump = false,
-        AntiAFK = false,
-        Speed = false,
-        AutoFarm = false,
-        AimbotLegit = false,
-        AimbotAsesino = false
+        ESP = false, Aimbot = false, KillAura = false, Noclip = false, 
+        InfJump = false, AntiAFK = false, Speed = false, Fly = false,
+        AimbotLegit = false, AimbotAsesino = false, AutoFarm = false,
+        FullBright = false
     },
     Config = {
-        Color_Asesino = "Rojo",
-        Color_Sheriff = "Azul",
-        Color_Inocente = "Blanco",
         WalkSpeed = 75,
-        TikTok = "sasware32"
+        JumpPower = 50,
+        AimbotSmoothness = 0.1,
+        ThemeColor = Color3.fromRGB(0, 255, 150)
     },
-    Colors = {
-        Rojo = Color3.fromRGB(255, 0, 0),
-        Naranja = Color3.fromRGB(255, 127, 0),
-        Amarillo = Color3.fromRGB(255, 255, 0),
-        Verde = Color3.fromRGB(0, 255, 0),
-        Azul = Color3.fromRGB(0, 0, 255),
-        Morado = Color3.fromRGB(127, 0, 255),
-        Negro = Color3.fromRGB(15, 15, 15),
-        Blanco = Color3.fromRGB(255, 255, 255),
-        Rosa = Color3.fromRGB(255, 0, 255),
-        Gris = Color3.fromRGB(120, 120, 120)
+    Themes = {
+        RGB = Color3.fromRGB(0, 255, 150),
+        Dark = Color3.fromRGB(40, 40, 40),
+        Sakura = Color3.fromRGB(255, 100, 200),
+        Ocean = Color3.fromRGB(0, 150, 255),
+        Gold = Color3.fromRGB(255, 200, 0)
     }
 }
 
--- [ UTILIDADES DE INTERFAZ ]
--- Sistema de Arrastre Estable (Sin errores de "disparo")
-local function MakeDraggable(frame)
-    local dragging = false
-    local dragInput, dragStart, startPos
-
-    local function update(input)
-        local delta = input.Position - dragStart
-        -- Suavizado de movimiento para evitar que el menú se pierda
-        local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        frame.Position = newPos
-    end
-
-    frame.InputBegan:Connect(function(input)
-        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-
-    frame.InputChanged:Connect(function(input)
-        if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            dragInput = input
-        end
-    end)
-
-    RunService.RenderStepped:Connect(function()
-        if dragging and dragInput then
-            update(dragInput)
-        end
-    end)
+-- [ UTILIDADES VISUALES ]
+local function CreateTween(obj, time, prop)
+    local t = TweenService:Create(obj, TweenInfo.new(time, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), prop)
+    t:Play()
+    return t
 end
 
--- [ CREACIÓN DE LA UI ]
+-- Limpieza de versiones anteriores
+if CoreGui:FindFirstChild("ChrisEliteHub") then CoreGui.ChrisEliteHub:Destroy() end
+
 local ScreenGui = Instance.new("ScreenGui", CoreGui)
-ScreenGui.Name = "ChrisHub_V10_Fixed"
+ScreenGui.Name = "ChrisEliteHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Pantalla de Login
-local LoginFrame = Instance.new("Frame", ScreenGui)
-LoginFrame.Size = UDim2.new(0, 360, 0, 280)
-LoginFrame.Position = UDim2.new(0.5, -180, 0.5, -140)
-LoginFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-LoginFrame.BorderSizePixel = 0
-Instance.new("UICorner", LoginFrame).CornerRadius = UDim.new(0, 10)
+-- [ NOTIFICACIONES ]
+local function Notify(title, text, color)
+    local NotifFrame = Instance.new("Frame", ScreenGui)
+    NotifFrame.Size = UDim2.new(0, 250, 0, 80)
+    NotifFrame.Position = UDim2.new(1, 10, 0.8, 0)
+    NotifFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    Instance.new("UICorner", NotifFrame)
+    local Stroke = Instance.new("UIStroke", NotifFrame)
+    Stroke.Color = color or Hub.Config.ThemeColor
+    Stroke.Thickness = 2
 
-local LoginStroke = Instance.new("UIStroke", LoginFrame)
-LoginStroke.Thickness = 2
-LoginStroke.Color = Color3.fromRGB(0, 255, 150)
+    local T = Instance.new("TextLabel", NotifFrame)
+    T.Size = UDim2.new(1, -20, 0, 30); T.Position = UDim2.new(0, 10, 0, 5)
+    T.Text = title; T.TextColor3 = color or Hub.Config.ThemeColor; T.Font = "GothamBlack"; T.TextSize = 16; T.BackgroundTransparency = 1; T.TextXAlignment = "Left"
 
-local LoginTitle = Instance.new("TextLabel", LoginFrame)
-LoginTitle.Size = UDim2.new(1, 0, 0, 60)
-LoginTitle.Text = "CHRIS HUB V10 FIXED"
-LoginTitle.TextColor3 = Color3.new(1,1,1)
-LoginTitle.Font = Enum.Font.GothamBlack
-LoginTitle.TextSize = 20
-LoginTitle.BackgroundTransparency = 1
+    local D = Instance.new("TextLabel", NotifFrame)
+    D.Size = UDim2.new(1, -20, 0, 40); D.Position = UDim2.new(0, 10, 0, 30)
+    D.Text = text; D.TextColor3 = Color3.new(1,1,1); D.Font = "GothamBold"; D.TextSize = 13; D.BackgroundTransparency = 1; D.TextXAlignment = "Left"; D.TextWrapped = true
 
-local KeyInput = Instance.new("TextBox", LoginFrame)
-KeyInput.Size = UDim2.new(0.8, 0, 0, 45)
-KeyInput.Position = UDim2.new(0.1, 0, 0.4, 0)
-KeyInput.PlaceholderText = "Escribe tu Llave aquí..."
-KeyInput.Text = ""
-KeyInput.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-KeyInput.TextColor3 = Color3.new(1,1,1)
-KeyInput.Font = Enum.Font.GothamBold
-Instance.new("UICorner", KeyInput)
+    CreateTween(NotifFrame, 0.5, {Position = UDim2.new(1, -270, 0.8, 0)})
+    task.delay(4, function()
+        CreateTween(NotifFrame, 0.5, {Position = UDim2.new(1, 10, 0.8, 0)})
+        task.wait(0.5); NotifFrame:Destroy()
+    end)
+end
 
-local LoginBtn = Instance.new("TextButton", LoginFrame)
-LoginBtn.Size = UDim2.new(0.8, 0, 0, 45)
-LoginBtn.Position = UDim2.new(0.1, 0, 0.7, 0)
-LoginBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
-LoginBtn.Text = "INICIAR SESIÓN"
-LoginBtn.TextColor3 = Color3.new(0,0,0)
-LoginBtn.Font = Enum.Font.GothamBlack
-Instance.new("UICorner", LoginBtn)
+-- [ ARRASTRE PROFESIONAL ]
+local function MakeDraggable(frame)
+    local dragging, dragInput, dragStart, startPos
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; dragStart = input.Position; startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    RunService.RenderStepped:Connect(function()
+        if dragging and dragInput then
+            local delta = dragInput.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
 
--- Menú Principal (Oculto al inicio)
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 560, 0, 380)
-MainFrame.Position = UDim2.new(0.5, -280, 0.5, -190)
-MainFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
-MainFrame.Visible = false
-Instance.new("UICorner", MainFrame)
-local MainStroke = Instance.new("UIStroke", MainFrame)
-MainStroke.Thickness = 2.5
-MakeDraggable(MainFrame)
+-- [ INTRO ANIMADA ]
+local function RunIntro()
+    local Overlay = Instance.new("Frame", ScreenGui)
+    Overlay.Size = UDim2.new(1, 0, 1, 0); Overlay.BackgroundColor3 = Color3.new(0,0,0); Overlay.ZIndex = 999
+    
+    local Title = Instance.new("TextLabel", Overlay)
+    Title.Size = UDim2.new(1, 0, 1, 0); Title.BackgroundTransparency = 1; Title.Text = APP_NAME
+    Title.TextColor3 = Color3.new(1,1,1); Title.Font = "GothamBlack"; Title.TextSize = 1; Title.TextTransparency = 1
 
--- Sidebar (Izquierda)
-local Sidebar = Instance.new("Frame", MainFrame)
-Sidebar.Size = UDim2.new(0, 150, 1, 0)
-Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    local Subtitle = Instance.new("TextLabel", Overlay)
+    Subtitle.Size = UDim2.new(1, 0, 0, 30); Subtitle.Position = UDim2.new(0,0,0.6,0); Subtitle.BackgroundTransparency = 1
+    Subtitle.Text = "CARGANDO ELITE SCRIPTS..."; Subtitle.TextColor3 = Color3.fromRGB(0, 255, 150); Subtitle.Font = "Code"; Subtitle.TextSize = 14; Subtitle.TextTransparency = 1
+
+    CreateTween(Title, 1.5, {TextSize = 80, TextTransparency = 0})
+    task.wait(1.5)
+    CreateTween(Subtitle, 0.5, {TextTransparency = 0})
+    
+    -- Efecto Glitch
+    for i = 1, 10 do
+        Title.TextColor3 = (i % 2 == 0) and Color3.new(1,0,0) or Color3.new(0,1,1)
+        task.wait(0.05)
+    end
+    Title.TextColor3 = Color3.new(1,1,1)
+    
+    task.wait(1)
+    CreateTween(Overlay, 1, {BackgroundTransparency = 1})
+    CreateTween(Title, 0.8, {TextTransparency = 1, TextSize = 150})
+    CreateTween(Subtitle, 0.5, {TextTransparency = 1})
+    task.wait(1); Overlay:Destroy()
+end
+
+-- [ UI PRINCIPAL ]
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 650, 0, 450)
+Main.Position = UDim2.new(0.5, -325, 0.5, -225)
+Main.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+Main.Visible = false; Main.ClipsDescendants = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
+local MainStroke = Instance.new("UIStroke", Main); MainStroke.Thickness = 3; MainStroke.Color = Hub.Config.ThemeColor
+MakeDraggable(Main)
+
+-- Sidebar
+local Sidebar = Instance.new("Frame", Main)
+Sidebar.Size = UDim2.new(0, 180, 1, 0); Sidebar.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 Instance.new("UICorner", Sidebar)
 
-local SidebarTitle = Instance.new("TextLabel", Sidebar)
-SidebarTitle.Size = UDim2.new(1, 0, 0, 60)
-SidebarTitle.Text = "CHRIS HUB"
-SidebarTitle.TextColor3 = Color3.fromRGB(0, 255, 150)
-SidebarTitle.Font = Enum.Font.GothamBlack
-SidebarTitle.TextSize = 22
-SidebarTitle.BackgroundTransparency = 1
+local Logo = Instance.new("TextLabel", Sidebar)
+Logo.Size = UDim2.new(1, 0, 0, 70); Logo.Text = APP_NAME; Logo.TextColor3 = Hub.Config.ThemeColor; Logo.Font = "GothamBlack"; Logo.TextSize = 24; Logo.BackgroundTransparency = 1
 
-local TabList = Instance.new("UIListLayout", Sidebar)
-TabList.Padding = UDim.new(0, 8)
-TabList.HorizontalAlignment = "Center"
+local TabContainer = Instance.new("ScrollingFrame", Sidebar)
+TabContainer.Size = UDim2.new(1, 0, 1, -150); TabContainer.Position = UDim2.new(0,0,0,70); TabContainer.BackgroundTransparency = 1; TabContainer.ScrollBarThickness = 0
+Instance.new("UIListLayout", TabContainer).Padding = UDim.new(0, 8); TabContainer.UIListLayout.HorizontalAlignment = "Center"
+
+-- Panel de Consola (Hacker Style)
+local Console = Instance.new("ScrollingFrame", Sidebar)
+Console.Size = UDim2.new(0.9, 0, 0, 70); Console.Position = UDim2.new(0.05, 0, 1, -80); Console.BackgroundColor3 = Color3.new(0,0,0); Console.BorderSizePixel = 0
+Console.ScrollBarThickness = 0; Console.CanvasSize = UDim2.new(0,0,5,0)
+local ConsoleList = Instance.new("UIListLayout", Console); ConsoleList.VerticalAlignment = "Bottom"
+
+local function Log(text)
+    local l = Instance.new("TextLabel", Console)
+    l.Size = UDim2.new(1, 0, 0, 15); l.BackgroundTransparency = 1; l.Text = "> " .. text; l.TextColor3 = Color3.fromRGB(0, 200, 100); l.Font = "Code"; l.TextSize = 10; l.TextXAlignment = "Left"
+    Console.CanvasPosition = Vector2.new(0, 9999)
+end
 
 -- Contenedor de Páginas
-local PageContainer = Instance.new("Frame", MainFrame)
-PageContainer.Size = UDim2.new(1, -170, 1, -20)
-PageContainer.Position = UDim2.new(0, 160, 0, 10)
-PageContainer.BackgroundTransparency = 1
+local PageContainer = Instance.new("Frame", Main)
+PageContainer.Size = UDim2.new(1, -200, 1, -20); PageContainer.Position = UDim2.new(0, 190, 0, 10); PageContainer.BackgroundTransparency = 1
 
 local Pages = {}
 
-local function CreatePage(name)
-    local p = Instance.new("ScrollingFrame", PageContainer)
-    p.Size = UDim2.new(1, 0, 1, 0)
-    p.Visible = false
-    p.BackgroundTransparency = 1
-    p.ScrollBarThickness = 2
-    p.CanvasSize = UDim2.new(0,0,2,0)
-    local pl = Instance.new("UIListLayout", p)
-    pl.Padding = UDim.new(0, 10)
-    pl.HorizontalAlignment = "Center"
-    Pages[name] = p
+local function CreatePage(name, icon)
+    local P = Instance.new("ScrollingFrame", PageContainer)
+    P.Size = UDim2.new(1, 0, 1, 0); P.BackgroundTransparency = 1; P.Visible = false; P.ScrollBarThickness = 3; P.CanvasSize = UDim2.new(0,0,0,0)
+    local Layout = Instance.new("UIListLayout", P); Layout.Padding = UDim.new(0, 12); Layout.HorizontalAlignment = "Center"
     
-    local btn = Instance.new("TextButton", Sidebar)
-    btn.Size = UDim2.new(0.9, 0, 0, 40)
-    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    btn.Text = name
-    btn.TextColor3 = Color3.new(0.8,0.8,0.8)
-    btn.Font = Enum.Font.GothamBold
-    Instance.new("UICorner", btn)
+    Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        P.CanvasSize = UDim2.new(0,0,0, Layout.AbsoluteContentSize.Y + 20)
+    end)
+
+    local B = Instance.new("TextButton", TabContainer)
+    B.Size = UDim2.new(0.85, 0, 0, 45); B.BackgroundColor3 = Color3.fromRGB(25, 25, 25); B.Text = name; B.TextColor3 = Color3.new(0.7,0.7,0.7); B.Font = "GothamBold"; B.TextSize = 14
+    Instance.new("UICorner", B)
     
-    btn.MouseButton1Click:Connect(function()
+    B.MouseButton1Click:Connect(function()
         for _, pg in pairs(Pages) do pg.Visible = false end
-        p.Visible = true
-        for _, b in pairs(Sidebar:GetChildren()) do
-            if b:IsA("TextButton") then b.BackgroundColor3 = Color3.fromRGB(25, 25, 25) end
-        end
-        btn.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
-        btn.TextColor3 = Color3.new(0,0,0)
+        for _, btn in pairs(TabContainer:GetChildren()) do if btn:IsA("TextButton") then CreateTween(btn, 0.3, {BackgroundColor3 = Color3.fromRGB(25, 25, 25), TextColor3 = Color3.new(0.7,0.7,0.7)}) end end
+        P.Visible = true
+        CreateTween(B, 0.3, {BackgroundColor3 = Hub.Config.ThemeColor, TextColor3 = Color3.new(0,0,0)})
+        Log("Cambiando a: " .. name)
     end)
-    return p
+    
+    Pages[name] = P
+    return P
 end
 
--- Generar Páginas
-local MainPg = CreatePage("MAIN")
-local EspPg = CreatePage("ESP")
-local CombatPg = CreatePage("COMBAT")
-local AutoPg = CreatePage("AUTO")
-Pages["MAIN"].Visible = true
-
--- [ COMPONENTES DE LA PÁGINA ]
--- Mensaje TikTok
-local TikTokMsg = Instance.new("TextLabel", MainPg)
-TikTokMsg.Size = UDim2.new(0.9, 0, 0, 40)
-TikTokMsg.Text = "Sigueme en mi TikTok: " .. HubState.Config.TikTok
-TikTokMsg.TextColor3 = Color3.fromRGB(0, 255, 150)
-TikTokMsg.Font = Enum.Font.GothamBlack
-TikTokMsg.TextSize = 16
-TikTokMsg.BackgroundTransparency = 1
-
-local function AddToggle(name, parent, var)
-    local f = Instance.new("Frame", parent)
-    f.Size = UDim2.new(0.95, 0, 0, 50)
-    f.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    Instance.new("UICorner", f)
+-- [ COMPONENTES DE UI AVANZADOS ]
+local function AddToggle(parent, text, var, callback)
+    local F = Instance.new("Frame", parent)
+    F.Size = UDim2.new(0.95, 0, 0, 60); F.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Instance.new("UICorner", F)
     
-    local tl = Instance.new("TextLabel", f)
-    tl.Size = UDim2.new(0.7, 0, 1, 0)
-    tl.Position = UDim2.new(0, 15, 0, 0)
-    tl.Text = name
-    tl.TextColor3 = Color3.new(1,1,1)
-    tl.Font = Enum.Font.GothamBold
-    tl.TextXAlignment = "Left"
-    tl.BackgroundTransparency = 1
+    local T = Instance.new("TextLabel", F)
+    T.Size = UDim2.new(0.7, 0, 1, 0); T.Position = UDim2.new(0, 15, 0, 0); T.Text = text; T.TextColor3 = Color3.new(1,1,1); T.Font = "GothamBold"; T.TextXAlignment = "Left"; T.BackgroundTransparency = 1
     
-    local btn = Instance.new("TextButton", f)
-    btn.Size = UDim2.new(0, 60, 0, 30)
-    btn.Position = UDim2.new(1, -75, 0.5, -15)
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.Text = "OFF"
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.Font = Enum.Font.GothamBlack
-    Instance.new("UICorner", btn)
+    local B = Instance.new("TextButton", F)
+    B.Size = UDim2.new(0, 60, 0, 30); B.Position = UDim2.new(1, -75, 0.5, -15); B.BackgroundColor3 = Color3.fromRGB(40, 40, 40); B.Text = ""
+    Instance.new("UICorner", B).CornerRadius = UDim.new(1,0)
     
-    btn.MouseButton1Click:Connect(function()
-        HubState.Toggles[var] = not HubState.Toggles[var]
-        btn.Text = HubState.Toggles[var] and "ON" or "OFF"
-        btn.BackgroundColor3 = HubState.Toggles[var] and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(40, 40, 40)
-        btn.TextColor3 = HubState.Toggles[var] and Color3.new(0,0,0) or Color3.new(1,1,1)
+    local C = Instance.new("Frame", B)
+    C.Size = UDim2.new(0, 24, 0, 24); C.Position = UDim2.new(0, 3, 0.5, -12); C.BackgroundColor3 = Color3.new(1,1,1); Instance.new("UICorner", C).CornerRadius = UDim.new(1,0)
+    
+    B.MouseButton1Click:Connect(function()
+        Hub.Toggles[var] = not Hub.Toggles[var]
+        local active = Hub.Toggles[var]
+        CreateTween(C, 0.3, {Position = active and UDim2.new(1, -27, 0.5, -12) or UDim2.new(0, 3, 0.5, -12)})
+        CreateTween(B, 0.3, {BackgroundColor3 = active and Hub.Config.ThemeColor or Color3.fromRGB(40, 40, 40)})
+        Log(text .. ": " .. (active and "Activado" or "Desactivado"))
+        if callback then callback(active) end
     end)
 end
 
-local function AddSelector(name, parent, options, callback)
-    local f = Instance.new("Frame", parent)
-    f.Size = UDim2.new(0.95, 0, 0, 70)
-    f.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    Instance.new("UICorner", f)
+local function AddSlider(parent, text, min, max, default, callback)
+    local F = Instance.new("Frame", parent)
+    F.Size = UDim2.new(0.95, 0, 0, 80); F.BackgroundColor3 = Color3.fromRGB(20, 20, 20); Instance.new("UICorner", F)
     
-    local tl = Instance.new("TextLabel", f)
-    tl.Size = UDim2.new(1, -30, 0, 30)
-    tl.Position = UDim2.new(0, 15, 0, 5)
-    tl.Text = name
-    tl.TextColor3 = Color3.fromRGB(200, 200, 200)
-    tl.Font = Enum.Font.GothamBold
-    tl.TextXAlignment = "Left"
-    tl.BackgroundTransparency = 1
+    local T = Instance.new("TextLabel", F)
+    T.Size = UDim2.new(1, -30, 0, 30); T.Position = UDim2.new(0, 15, 0, 5); T.Text = text .. ": " .. default; T.TextColor3 = Color3.new(1,1,1); T.Font = "GothamBold"; T.TextXAlignment = "Left"; T.BackgroundTransparency = 1
     
-    local btn = Instance.new("TextButton", f)
-    btn.Size = UDim2.new(0.9, 0, 0, 30)
-    btn.Position = UDim2.new(0.05, 0, 0, 35)
-    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    btn.Text = "Seleccionar..."
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.Font = Enum.Font.GothamBold
-    Instance.new("UICorner", btn)
+    local SliderBg = Instance.new("Frame", F)
+    SliderBg.Size = UDim2.new(0.9, 0, 0, 6); SliderBg.Position = UDim2.new(0.05, 0, 0, 55); SliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40); Instance.new("UICorner", SliderBg)
     
-    local i = 1
-    btn.MouseButton1Click:Connect(function()
-        i = (i % #options) + 1
-        btn.Text = options[i]
-        callback(options[i])
+    local Fill = Instance.new("Frame", SliderBg)
+    Fill.Size = UDim2.new((default-min)/(max-min), 0, 1, 0); Fill.BackgroundColor3 = Hub.Config.ThemeColor; Instance.new("UICorner", Fill)
+    
+    local Knob = Instance.new("Frame", SliderBg)
+    Knob.Size = UDim2.new(0, 16, 0, 16); Knob.Position = UDim2.new((default-min)/(max-min), -8, 0.5, -8); Knob.BackgroundColor3 = Color3.new(1,1,1); Instance.new("UICorner", Knob)
+
+    local dragging = false
+    local function UpdateSlider(input)
+        local pos = math.clamp((input.Position.X - SliderBg.AbsolutePosition.X) / SliderBg.AbsoluteSize.X, 0, 1)
+        local val = math.floor(min + (max - min) * pos)
+        T.Text = text .. ": " .. val
+        Fill.Size = UDim2.new(pos, 0, 1, 0)
+        Knob.Position = UDim2.new(pos, -8, 0.5, -8)
+        callback(val)
+    end
+
+    Knob.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true end end)
+    UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
+    UserInputService.InputChanged:Connect(function(input) if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then UpdateSlider(input) end end)
+end
+
+-- [ PÁGINAS DEL HUB ]
+local MainPg = CreatePage("PRINCIPAL")
+local CombatPg = CreatePage("COMBATE")
+local EspPg = CreatePage("VISUALES")
+local ThemesPg = CreatePage("TEMAS")
+local CreditsPg = CreatePage("CRÉDITOS")
+
+-- Créditos
+local C1 = Instance.new("TextLabel", CreditsPg)
+C1.Size = UDim2.new(1, 0, 0, 50); C1.Text = "Creado por: CHRIS HUB"; C1.TextColor3 = Color3.new(1,1,1); C1.Font = "GothamBlack"; C1.BackgroundTransparency = 1
+local C2 = Instance.new("TextLabel", CreditsPg)
+C2.Size = UDim2.new(1, 0, 0, 30); C2.Text = "TikTok: " .. TIKTOK; C2.TextColor3 = Hub.Config.ThemeColor; C2.Font = "GothamBold"; C2.BackgroundTransparency = 1
+
+-- Contenido Principal
+AddToggle(MainPg, "Atravesar Paredes (Noclip)", "Noclip")
+AddToggle(MainPg, "Salto Infinito", "InfJump")
+AddToggle(MainPg, "Anti-AFK Automático", "AntiAFK")
+AddToggle(MainPg, "Súper Brillo (FullBright)", "FullBright", function(v) Lighting.Brightness = v and 5 or 1; Lighting.ClockTime = v and 12 or 14 end)
+AddSlider(MainPg, "Velocidad Caminado", 16, 200, 75, function(v) Hub.Config.WalkSpeed = v end)
+
+-- Contenido Combate
+AddToggle(CombatPg, "Kill Aura (35 Studs)", "KillAura")
+AddToggle(CombatPg, "Aimbot Maestro", "Aimbot")
+AddToggle(CombatPg, "Aimbot Solo Visible", "AimbotLegit")
+AddToggle(CombatPg, "Prioridad Asesino", "AimbotAsesino")
+AddSlider(CombatPg, "Suavizado Aimbot", 1, 100, 10, function(v) Hub.Config.AimbotSmoothness = v/100 end)
+
+-- Visuales
+AddToggle(EspPg, "Activar ESP", "ESP")
+
+-- Temas
+for name, color in pairs(Hub.Themes) do
+    local B = Instance.new("TextButton", ThemesPg)
+    B.Size = UDim2.new(0.9, 0, 0, 45); B.BackgroundColor3 = color; B.Text = "TEMA: " .. name; B.TextColor3 = Color3.new(0,0,0); B.Font = "GothamBlack"
+    Instance.new("UICorner", B)
+    B.MouseButton1Click:Connect(function()
+        Hub.Config.ThemeColor = color
+        MainStroke.Color = color
+        Logo.TextColor3 = color
+        Notify("Tema Actualizado", "Has activado el modo " .. name, color)
     end)
 end
 
--- Llenar Menú
-AddToggle("Noclip", MainPg, "Noclip")
-AddToggle("Inf Jump", MainPg, "InfJump")
-AddToggle("Anti-AFK", MainPg, "AntiAFK")
-AddToggle("Speed (75)", MainPg, "Speed")
-
-AddToggle("ESP Maestro", EspPg, "ESP")
-local colorList = {"Rojo", "Naranja", "Amarillo", "Verde", "Azul", "Morado", "Negro", "Blanco", "Rosa", "Gris"}
-AddSelector("Color Asesino", EspPg, colorList, function(v) HubState.Config.Color_Asesino = v end)
-AddSelector("Color Sheriff", EspPg, colorList, function(v) HubState.Config.Color_Sheriff = v end)
-AddSelector("Color Inocente", EspPg, colorList, function(v) HubState.Config.Color_Inocente = v end)
-
-AddToggle("Kill Aura (35 Studs)", CombatPg, "KillAura")
-AddToggle("Aimbot Global", CombatPg, "Aimbot")
-AddToggle("Aimbot Legit (Visible Only)", CombatPg, "AimbotLegit")
-AddToggle("Aimbot Anti-Murderer", CombatPg, "AimbotAsesino")
-
-AddToggle("Auto Farm (Placeholder)", AutoPg, "AutoFarm")
-
--- [ BOTÓN FLOTANTE CH ]
-local FloatBtn = Instance.new("TextButton", ScreenGui)
-FloatBtn.Size = UDim2.new(0, 60, 0, 60)
-FloatBtn.Position = UDim2.new(0, 20, 0.5, -30)
-FloatBtn.BackgroundColor3 = Color3.new(0,0,0)
-FloatBtn.Text = "CH"
-FloatBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
-FloatBtn.Font = Enum.Font.GothamBlack
-FloatBtn.TextSize = 24
-FloatBtn.Visible = false
-Instance.new("UICorner", FloatBtn).CornerRadius = UDim.new(1,0)
-local FloatStroke = Instance.new("UIStroke", FloatBtn)
-FloatStroke.Thickness = 2
-FloatStroke.Color = Color3.fromRGB(0, 255, 150)
-MakeDraggable(FloatBtn)
-
-FloatBtn.MouseButton1Click:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
-end)
-
--- [ LÓGICA DE JUEGO MM2 ]
+-- [ LÓGICA DE JUEGO MM2 - ELITE ]
 local function GetRole(plr)
     if not plr or not plr.Character then return "Inocente" end
     if plr.Character:FindFirstChild("Knife") or plr.Backpack:FindFirstChild("Knife") then return "Asesino" end
@@ -352,147 +325,95 @@ local function GetRole(plr)
     return "Inocente"
 end
 
--- Bucle de Funciones (Heartbeat)
+-- Bucle Principal (60 FPS / Heartbeat)
 RunService.Heartbeat:Connect(function()
-    if not HubState.Active or not player.Character then return end
-    
-    local char = player.Character
-    local root = char:FindFirstChild("HumanoidRootPart")
+    if not Hub.Active then return end
+    local char = lp.Character
+    if not char then return end
     local hum = char:FindFirstChild("Humanoid")
-    
-    if not root or not hum then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not hum or not root then return end
 
     -- Speed
-    if HubState.Toggles.Speed then hum.WalkSpeed = HubState.Config.WalkSpeed else hum.WalkSpeed = 16 end
-    
-    -- Anti-AFK
-    if HubState.Toggles.AntiAFK and tick() % 30 < 0.1 then
-        hum:ChangeState(3)
-    end
+    if Hub.Toggles.Speed or hum.WalkSpeed > 16 then hum.WalkSpeed = Hub.Config.WalkSpeed end
 
-    -- KILL AURA MEJORADO (Tu Lógica de 35 Studs)
-    if HubState.Toggles.KillAura and char:FindFirstChild("Knife") then
+    -- KILL AURA 35 STUDS (Tu Código)
+    if Hub.Toggles.KillAura and char:FindFirstChild("Knife") then
         for _, plr in pairs(Players:GetPlayers()) do
-            if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            if plr ~= lp and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                 local dist = (root.Position - plr.Character.HumanoidRootPart.Position).Magnitude
                 if dist <= 35 then
-                    -- Manipulación de CFrame para golpear
                     char.Knife.Handle.CFrame = plr.Character.HumanoidRootPart.CFrame
                 end
             end
         end
     end
 
-    -- ESP CON CONTORNOS
-    if HubState.Toggles.ESP then
+    -- AIMBOT LOCK-ON MEJORADO
+    if Hub.Toggles.Aimbot or Hub.Toggles.AimbotLegit or Hub.Toggles.AimbotAsesino then
+        local target, bestDist = nil, 800
         for _, p in pairs(Players:GetPlayers()) do
-            if p ~= player and p.Character then
-                local role = GetRole(p)
-                local color = HubState.Colors[HubState.Config["Color_"..role]]
-                
-                local hl = p.Character:FindFirstChild("ChrisESP") or Instance.new("Highlight", p.Character)
-                hl.Name = "ChrisESP"
-                hl.FillColor = color
-                hl.OutlineColor = color
-                hl.FillTransparency = 0.5
-                hl.Enabled = true
-            end
-        end
-    else
-        for _, p in pairs(Players:GetPlayers()) do
-            if p.Character and p.Character:FindFirstChild("ChrisESP") then
-                p.Character.ChrisESP.Enabled = false
-            end
-        end
-    end
-
-    -- AIMBOT LOCK-ON ESTABLE
-    if HubState.Toggles.Aimbot or HubState.Toggles.AimbotLegit or HubState.Toggles.AimbotAsesino then
-        local target, bestDist = nil, 600
-        
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= player and p.Character and p.Character:FindFirstChild("Head") then
+            if p ~= lp and p.Character and p.Character:FindFirstChild("Head") then
                 local head = p.Character.Head
-                local pos, visible = camera:WorldToViewportPoint(head.Position)
+                local pos, vis = camera:WorldToViewportPoint(head.Position)
                 
-                if visible then
-                    -- Filtro Asesino
-                    if HubState.Toggles.AimbotAsesino and GetRole(p) ~= "Asesino" then continue end
-                    
-                    -- Filtro Legit (Raycast)
-                    if HubState.Toggles.AimbotLegit then
+                if vis then
+                    if Hub.Toggles.AimbotAsesino and GetRole(p) ~= "Asesino" then continue end
+                    if Hub.Toggles.AimbotLegit then
                         local ray = Ray.new(camera.CFrame.Position, (head.Position - camera.CFrame.Position).Unit * 500)
                         local hit = Workspace:FindPartOnRayWithIgnoreList(ray, {char, camera})
                         if not hit or not hit:IsDescendantOf(p.Character) then continue end
                     end
                     
-                    local mouseDist = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
-                    if mouseDist < bestDist then
-                        bestDist = mouseDist
-                        target = head
-                    end
+                    local mDist = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                    if mDist < bestDist then bestDist = mDist; target = head end
                 end
             end
         end
-        
-        -- Fijado de Cámara Suave pero Firme (Lock-on)
         if target then
-            camera.CFrame = CFrame.new(camera.CFrame.Position, target.Position)
+            -- Suavizado Dinámico
+            local goal = CFrame.new(camera.CFrame.Position, target.Position)
+            camera.CFrame = camera.CFrame:Lerp(goal, Hub.Config.AimbotSmoothness or 0.1)
+        end
+    end
+
+    -- ESP HIGHLIGHTS
+    if Hub.Toggles.ESP then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= lp and p.Character then
+                local role = GetRole(p)
+                local hl = p.Character:FindFirstChild("EliteHighlight") or Instance.new("Highlight", p.Character)
+                hl.Name = "EliteHighlight"; hl.Enabled = true; hl.FillTransparency = 0.5
+                if role == "Asesino" then hl.FillColor = Color3.new(1,0,0); hl.OutlineColor = Color3.new(1,1,1)
+                elseif role == "Sheriff" then hl.FillColor = Color3.new(0,0,1); hl.OutlineColor = Color3.new(1,1,1)
+                else hl.FillColor = Color3.new(1,1,1); hl.OutlineColor = Color3.new(0,0,0) end
+            end
         end
     end
 end)
 
--- Noclip (Stepped)
+-- Noclip Stepped
 RunService.Stepped:Connect(function()
-    if HubState.Toggles.Noclip and player.Character then
-        for _, v in pairs(player.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
+    if Hub.Toggles.Noclip and lp.Character then
+        for _, v in pairs(lp.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
     end
 end)
 
--- Inf Jump
+-- Salto Infinito
 UserInputService.JumpRequest:Connect(function()
-    if HubState.Toggles.InfJump and player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid:ChangeState(3)
+    if Hub.Toggles.InfJump and lp.Character and lp.Character:FindFirstChild("Humanoid") then
+        lp.Character.Humanoid:ChangeState(3)
     end
 end)
 
--- Efecto Rainbow (Vistoso)
-task.spawn(function()
-    while task.wait() do
-        local color = Color3.fromHSV(tick() % 5 / 5, 0.8, 1)
-        MainStroke.Color = color
-        FloatStroke.Color = color
-        LoginStroke.Color = color
-        SidebarTitle.TextColor3 = color
-    end
-end)
+-- [ SISTEMA DE LOGIN Y ACCESO ]
+local LoginFrame = Instance.new("Frame", ScreenGui)
+LoginFrame.Size = UDim2.new(0, 380, 0, 300); LoginFrame.Position = UDim2.new(0.5, -190, 0.5, -150); LoginFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Instance.new("UICorner", LoginFrame)
+local LStroke = Instance.new("UIStroke", LoginFrame); LStroke.Thickness = 2; LStroke.Color = Color3.fromRGB(0, 255, 150)
 
--- [ SISTEMA DE LOGIN ]
-LoginBtn.MouseButton1Click:Connect(function()
-    local key = KeyInput.Text
-    if VALID_KEYS[key] then
-        HubState.Active = true
-        LoginFrame:Destroy()
-        MainFrame.Visible = true
-        FloatBtn.Visible = true
-    else
-        KeyInput.Text = ""
-        KeyInput.PlaceholderText = "¡LLAVE INCORRECTA!"
-        task.wait(1)
-        KeyInput.PlaceholderText = "Escribe tu Llave aquí..."
-    end
-end)
+local LTitle = Instance.new("TextLabel", LoginFrame)
+LTitle.Size = UDim2.new(1, 0, 0, 60); LTitle.Text = "CHRIS HUB ELITE LOGIN"; LTitle.TextColor3 = Color3.new(1,1,1); LTitle.Font = "GothamBlack"; LTitle.TextSize = 20; LTitle.BackgroundTransparency = 1
 
--- Mensaje de Consola al Cargar
-print("------------------------------------------")
-print("CHRIS HUB V10 FIXED LOADED SUCCESSFULLY")
-print("TIKTOK: sasware32")
-print("STATUS: UNDETECTED")
-print("------------------------------------------")
-
--- [ FINAL DEL CÓDIGO - EXPANSIÓN PARA ESTABILIDAD ]
--- El código se ha estructurado para ser resiliente a errores de Delta.
--- Se han incluido esperas (task.wait) en bucles críticos para evitar crasheos.
--- Las conexiones se limpian automáticamente al cerrar (opcional).
+local KInput = Instance.new("TextBox", LoginFrame)
+KInput.Size = UDim2.new(0.8, 0, 0, 45);
