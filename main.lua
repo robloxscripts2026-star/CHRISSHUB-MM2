@@ -1,279 +1,515 @@
 --[[
-    CHRISSHUB MM2 V3 - THE TITAN UPDATE
-    -------------------------------------------
-    DEVELOPER: Chris (Elite Edition for Chris)
-    ESTILO: Modern Sidebar / Glassmorphism
-    DISPOSITIVO: Mobile / Tablet / PC
-    TIKTOK: @sasware32
-    -------------------------------------------
+    ██████╗██╗  ██╗██████╗ ██╗███████╗███████╗██╗  ██╗██╗   ██╗██████╗ 
+    ██╔════╝██║  ██║██╔══██╗██║██╔════╝██╔════╝██║  ██║██║   ██║██╔══██╗
+    ██║     ███████║██████╔╝██║███████╗███████╗███████║██║   ██║██████╔╝
+    ██║     ██╔══██║██╔══██╗██║╚════██║╚════██║██╔══██║██║   ██║██╔══██╗
+    ╚██████╗██║  ██║██║  ██║██║███████║███████║██║  ██║╚██████╔╝██████╔╝
+     ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ 
+    
+    CHRISSHUB MM2 V3 - EDICIÓN FINAL COMPLETA (SIN LÍMITE DE LÍNEAS)
+    Desarrollado para: GitHub / Comunidad MM2
+    Características: UI Avanzada, Notificaciones, ESP Multi-Color, Aimbots, Combat.
 ]]
 
+-- =============================================================
+-- [1] SERVICIOS DEL NÚCLEO
+-- =============================================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
-local Debris = game:GetService("Debris")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
 local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local Debris = game:GetService("Debris")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local lp = Players.LocalPlayer
-local camera = Workspace.CurrentCamera
-local appId = "CHRISSHUB_V3_TITAN"
+-- =============================================================
+-- [2] VARIABLES DE ENTORNO Y REFERENCIAS
+-- =============================================================
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 
--- [ BASE DE DATOS Y CONFIG ]
-local CH_DATA = {
-    Keys = {"482916", "731592", "264831", "917542", "358269", "621973", "845155"},
-    TikTok = "sasware32",
-    Toggles = {
-        ESP = false, Aimbot = false, Legit = false, TargetM = false,
-        KillAura = false, Noclip = false, InfJump = false, AntiAFK = true
-    },
-    ESP_Config = {
-        M = {Color = Color3.fromRGB(255, 0, 0), Name = "Rojo"},
-        S = {Color = Color3.fromRGB(0, 100, 255), Name = "Azul"},
-        I = {Color = Color3.fromRGB(255, 255, 255), Name = "Blanco"}
-    },
-    ColorLibrary = {
-        ["Rojo"] = Color3.fromRGB(255, 0, 0),
-        ["Naranja"] = Color3.fromRGB(255, 165, 0),
-        ["Amarillo"] = Color3.fromRGB(255, 255, 0),
-        ["Verde"] = Color3.fromRGB(0, 255, 100),
-        ["Azul"] = Color3.fromRGB(0, 100, 255),
-        ["Morado"] = Color3.fromRGB(150, 0, 255),
-        ["Negro"] = Color3.fromRGB(0, 0, 0),
-        ["Blanco"] = Color3.fromRGB(255, 255, 255),
-        ["Rosa"] = Color3.fromRGB(255, 100, 200),
-        ["Gris"] = Color3.fromRGB(120, 120, 120)
-    },
-    ActivePage = "MAIN"
+-- =============================================================
+-- [3] DICCIONARIO MAESTRO DE COLORES (20 OPCIONES)
+-- =============================================================
+local ColorLibrary = {
+    ["Rojo"] = Color3.fromRGB(255, 0, 0),
+    ["Naranja"] = Color3.fromRGB(255, 165, 0),
+    ["Amarillo"] = Color3.fromRGB(255, 255, 0),
+    ["Verde lima"] = Color3.fromRGB(50, 205, 50),
+    ["Verde bosque"] = Color3.fromRGB(34, 139, 34),
+    ["Azul cielo"] = Color3.fromRGB(135, 206, 235),
+    ["Azul marino"] = Color3.fromRGB(0, 0, 128),
+    ["Azul eléctrico"] = Color3.fromRGB(0, 191, 255),
+    ["Morado"] = Color3.fromRGB(128, 0, 128),
+    ["Lila"] = Color3.fromRGB(221, 160, 221),
+    ["Rosa"] = Color3.fromRGB(255, 192, 203),
+    ["Rosa fucsia"] = Color3.fromRGB(255, 105, 180),
+    ["Marrón"] = Color3.fromRGB(139, 69, 19),
+    ["Café claro"] = Color3.fromRGB(222, 184, 135),
+    ["Negro"] = Color3.fromRGB(0, 0, 0),
+    ["Blanco"] = Color3.fromRGB(255, 255, 255),
+    ["Gris"] = Color3.fromRGB(128, 128, 128),
+    ["Gris claro"] = Color3.fromRGB(211, 211, 211),
+    ["Turquesa"] = Color3.fromRGB(64, 224, 208),
+    ["Beige"] = Color3.fromRGB(245, 245, 220)
 }
 
--- [ SISTEMA DE UI ]
-if CoreGui:FindFirstChild(appId) then CoreGui[appId]:Destroy() end
-local SG = Instance.new("ScreenGui", CoreGui); SG.Name = appId
+local ColorNames = {
+    "Rojo", "Naranja", "Amarillo", "Verde lima", "Verde bosque", 
+    "Azul cielo", "Azul marino", "Azul eléctrico", "Morado", "Lila", 
+    "Rosa", "Rosa fucsia", "Marrón", "Café claro", "Negro", "Blanco", 
+    "Gris", "Gris claro", "Turquesa", "Beige"
+}
 
-local function Tw(obj, dur, prop, style)
-    local t = TweenService:Create(obj, TweenInfo.new(dur, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), prop)
-    t:Play()
-    return t
+-- =============================================================
+-- [4] SISTEMA DE ESTADOS (TOGGLES)
+-- =============================================================
+local Toggles = {
+    ESP = false,
+    Aimbot = false,
+    AimbotLegit = false,
+    AimbotAsesino = false,
+    KillAura = false,
+    Noclip = false,
+    InfJump = false,
+    AntiAFK = false,
+    ShowMenu = true
+}
+
+local ESPConfig = {
+    Murderer = "Rojo",
+    Sheriff = "Azul marino",
+    Innocent = "Verde lima",
+    Highlights = {}
+}
+
+local ValidKeys = {"482916", "731592", "264831", "917542", "358269", "621973", "845137"}
+local IsAuthenticated = false
+
+-- =============================================================
+-- [5] LIBRERÍA DE UTILIDADES (TWEENS Y UI)
+-- =============================================================
+local UIUtils = {}
+
+function UIUtils:ApplyTween(Instance, Properties, Duration)
+    local Info = TweenInfo.new(Duration or 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    local Tween = TweenService:Create(Instance, Info, Properties)
+    Tween:Play()
+    return Tween
 end
 
-local function Ripple(obj)
-    task.spawn(function()
-        local r = Instance.new("Frame", obj)
-        r.BackgroundColor3 = Color3.new(1,1,1); r.BackgroundTransparency = 0.7; r.BorderSizePixel = 0
-        r.Size = UDim2.new(0,0,0,0); r.Position = UDim2.new(0.5,0,0.5,0)
-        Instance.new("UICorner", r).CornerRadius = UDim.new(1,0)
-        Tw(r, 0.4, {Size = UDim2.new(2,0,4,0), Position = UDim2.new(-0.5,0,-1.5,0), BackgroundTransparency = 1})
-        Debris:AddItem(r, 0.5)
-    end)
+function UIUtils:CreateShadow(Parent)
+    local Shadow = Instance.new("ImageLabel")
+    Shadow.Name = "Shadow"
+    Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    Shadow.BackgroundTransparency = 1
+    Shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Shadow.Size = UDim2.new(1, 30, 1, 30)
+    Shadow.ZIndex = Parent.ZIndex - 1
+    Shadow.Image = "rbxassetid://1316045217"
+    Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    Shadow.ImageTransparency = 0.5
+    Shadow.ScaleType = Enum.ScaleType.Slice
+    Shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    Shadow.Parent = Parent
 end
 
--- [ INTRO V3 ]
-local function StartIntro()
-    local F = Instance.new("Frame", SG); F.Size = UDim2.new(1,0,1,0); F.BackgroundTransparency = 1
-    
-    -- Lluvia Matrix Verde
+-- =============================================================
+-- [6] INTERFAZ DE INTRODUCCIÓN (HACKER STYLE)
+-- =============================================================
+local function ShowHackerIntro()
+    local IntroScreen = Instance.new("ScreenGui")
+    IntroScreen.Name = "ChrissHub_Intro"
+    IntroScreen.Parent = CoreGui
+
+    local Blackout = Instance.new("Frame")
+    Blackout.Size = UDim2.new(1, 0, 1, 0)
+    Blackout.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Blackout.Parent = IntroScreen
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 100)
+    Title.Position = UDim2.new(0, 0, 0.45, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = "INICIALIZANDO CHRISSHUB V3..."
+    Title.TextColor3 = Color3.fromRGB(0, 255, 120)
+    Title.Font = Enum.Font.Code
+    Title.TextSize = 40
+    Title.Parent = Blackout
+
+    -- Generador de lluvia de código
     task.spawn(function()
-        for i = 1, 70 do
-            local d = Instance.new("TextLabel", F)
-            d.Text = math.random(0,1); d.TextColor3 = Color3.fromRGB(0, 255, 120); d.BackgroundTransparency = 1
-            d.Position = UDim2.new(math.random(), 0, -0.1, 0); d.Font = "Code"; d.TextSize = math.random(15,30)
-            local dur = math.random(2, 4)
-            Tw(d, dur, {Position = UDim2.new(d.Position.X.Scale, 0, 1.1, 0), TextTransparency = 1}, Enum.EasingStyle.Linear)
-            Debris:AddItem(d, dur + 0.1); task.wait(0.04)
+        for i = 1, 100 do
+            local Line = Instance.new("TextLabel")
+            Line.Size = UDim2.new(0, 150, 0, 20)
+            Line.Position = UDim2.new(math.random(), 0, -0.1, 0)
+            Line.BackgroundTransparency = 1
+            Line.Text = "DECRYPTING_" .. tostring(math.random(1000, 9999))
+            Line.TextColor3 = Color3.fromRGB(0, 150, 80)
+            Line.Font = Enum.Font.Code
+            Line.TextSize = 14
+            Line.Parent = Blackout
+            
+            local Speed = math.random(2, 5)
+            UIUtils:ApplyTween(Line, {Position = UDim2.new(Line.Position.X.Scale, 0, 1.1, 0)}, Speed)
+            Debris:AddItem(Line, Speed)
+            task.wait(0.05)
         end
     end)
 
-    local L = Instance.new("TextLabel", F); L.Size = UDim2.new(1,0,0,100); L.Position = UDim2.new(0,0,0.4,0); L.BackgroundTransparency = 1
-    L.Text = "CHRISSHUB V3"; L.TextColor3 = Color3.fromRGB(0, 255, 120); L.Font = "GothamBlack"; L.TextSize = 1; L.TextTransparency = 1
-    local s = Instance.new("UIStroke", L); s.Thickness = 5; s.Color = Color3.new(1,1,1); s.Transparency = 1
-
-    Tw(L, 1.2, {TextSize = 90, TextTransparency = 0}); Tw(s, 1.2, {Transparency = 0})
-    task.wait(2.5)
-    Tw(L, 0.8, {TextSize = 200, TextTransparency = 1}); Tw(s, 0.8, {Transparency = 1})
-    task.wait(0.8); F:Destroy(); ShowLogin()
+    task.wait(4)
+    UIUtils:ApplyTween(Title, {TextTransparency = 1}, 1)
+    UIUtils:ApplyTween(Blackout, {BackgroundTransparency = 1}, 1.5)
+    task.wait(1.5)
+    IntroScreen:Destroy()
 end
 
--- [ LOGIN SYSTEM ]
-function ShowLogin()
-    local L = Instance.new("Frame", SG); L.Size = UDim2.new(0,340,0,220); L.Position = UDim2.new(0.5,-170,0.5,-110)
-    L.BackgroundColor3 = Color3.fromRGB(15,15,15); Instance.new("UICorner", L); local s = Instance.new("UIStroke", L); s.Color = Color3.fromRGB(0,255,120); s.Thickness = 2
-    
-    local T = Instance.new("TextLabel", L); T.Size = UDim2.new(1,0,0,50); T.Text = "TITAN SECURITY"; T.TextColor3 = Color3.new(1,1,1); T.Font = "Code"; T.BackgroundTransparency = 1
-    local I = Instance.new("TextBox", L); I.Size = UDim2.new(0.85,0,0,45); I.Position = UDim2.new(0.075,0,0.35,0); I.PlaceholderText = "> Ingrese Key V3..."; I.BackgroundColor3 = Color3.new(0,0,0); I.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", I)
-    local B = Instance.new("TextButton", L); B.Size = UDim2.new(0.85,0,0,45); B.Position = UDim2.new(0.075,0,0.7,0); B.Text = "VERIFICAR LLAVE"; B.BackgroundColor3 = Color3.fromRGB(0,255,120); B.Font = "GothamBold"; Instance.new("UICorner", B)
-    
-    B.MouseButton1Click:Connect(function()
-        local found = false
-        for _,k in pairs(CH_DATA.Keys) do if I.Text == k then found = true break end end
-        if found or I.Text == "CHRIS2026" then
-            B.Text = "ACCESO CONCEDIDO"; task.wait(0.5); L:Destroy(); BuildMenu()
-        else
-            B.Text = "LLAVE INVÁLIDA"; B.BackgroundColor3 = Color3.new(1,0,0)
-            task.wait(1.5); B.Text = "VERIFICAR LLAVE"; B.BackgroundColor3 = Color3.fromRGB(0,255,120)
+-- =============================================================
+-- [7] SISTEMA DE AUTENTICACIÓN (KEY SYSTEM)
+-- =============================================
+local function ShowKeySystem()
+    local KeyGui = Instance.new("ScreenGui")
+    KeyGui.Name = "ChrissHub_KeySystem"
+    KeyGui.Parent = CoreGui
+
+    local MainKeyFrame = Instance.new("Frame")
+    MainKeyFrame.Size = UDim2.new(0, 350, 0, 220)
+    MainKeyFrame.Position = UDim2.new(0.5, -175, 0.5, -110)
+    MainKeyFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    MainKeyFrame.BorderSizePixel = 0
+    MainKeyFrame.Parent = KeyGui
+    Instance.new("UICorner", MainKeyFrame).CornerRadius = UDim.new(0, 10)
+    UIUtils:CreateShadow(MainKeyFrame)
+
+    local KeyTitle = Instance.new("TextLabel")
+    KeyTitle.Size = UDim2.new(1, 0, 0, 50)
+    KeyTitle.Text = "VERIFICACIÓN REQUERIDA"
+    KeyTitle.TextColor3 = Color3.fromRGB(0, 255, 120)
+    KeyTitle.Font = Enum.Font.GothamBold
+    KeyTitle.TextSize = 18
+    KeyTitle.BackgroundTransparency = 1
+    KeyTitle.Parent = MainKeyFrame
+
+    local KeyInput = Instance.new("TextBox")
+    KeyInput.Size = UDim2.new(0.8, 0, 0, 45)
+    KeyInput.Position = UDim2.new(0.1, 0, 0.35, 0)
+    KeyInput.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    KeyInput.TextColor3 = Color3.new(1, 1, 1)
+    KeyInput.PlaceholderText = "Ingresa tu llave..."
+    KeyInput.Text = ""
+    KeyInput.Parent = MainKeyFrame
+    Instance.new("UICorner", KeyInput)
+
+    local VerifyBtn = Instance.new("TextButton")
+    VerifyBtn.Size = UDim2.new(0.8, 0, 0, 45)
+    VerifyBtn.Position = UDim2.new(0.1, 0, 0.65, 0)
+    VerifyBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 120)
+    VerifyBtn.Text = "VERIFICAR ACCESO"
+    VerifyBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    VerifyBtn.Font = Enum.Font.GothamBold
+    VerifyBtn.TextSize = 14
+    VerifyBtn.Parent = MainKeyFrame
+    Instance.new("UICorner", VerifyBtn)
+
+    VerifyBtn.MouseButton1Click:Connect(function()
+        for _, Key in ipairs(ValidKeys) do
+            if KeyInput.Text == Key then
+                IsAuthenticated = true
+                KeyGui:Destroy()
+                InitializeMainHub()
+                return
+            end
         end
+        KeyInput.Text = ""
+        KeyInput.PlaceholderText = "LLAVE INVÁLIDA"
+        task.wait(1.5)
+        KeyInput.PlaceholderText = "Ingresa tu llave..."
     end)
 end
 
--- [ MENÚ TITAN V3 ]
-function BuildMenu()
-    local Main = Instance.new("Frame", SG); Main.Size = UDim2.new(0, 540, 0, 340); Main.Position = UDim2.new(0.5, -270, 0.5, -170)
-    Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10); Instance.new("UICorner", Main)
-    local MainStroke = Instance.new("UIStroke", Main); MainStroke.Color = Color3.fromRGB(0, 255, 120); MainStroke.Thickness = 2
+-- =============================================================
+-- [8] INICIALIZACIÓN DEL HUB PRINCIPAL
+-- =============================================================
+function InitializeMainHub()
+    local MainGui = Instance.new("ScreenGui")
+    MainGui.Name = "ChrissHub_Main"
+    MainGui.Parent = CoreGui
 
-    -- Logo Ninja V3
-    local Logo = Instance.new("Frame", Main); Logo.Size = UDim2.new(0, 65, 0, 65); Logo.Position = UDim2.new(0.5, -32.5, 0, -32.5)
-    Logo.BackgroundColor3 = Color3.new(0,0,0); Instance.new("UICorner", Logo).CornerRadius = UDim.new(1,0); Instance.new("UIStroke", Logo).Color = Color3.fromRGB(180, 0, 255)
-    local Icon = Instance.new("ImageLabel", Logo); Icon.Size = UDim2.new(0.8,0,0.8,0); Icon.Position = UDim2.new(0.1,0,0.1,0); Icon.BackgroundTransparency = 1; Icon.Image = "rbxassetid://6031068833"
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 500, 0, 400)
+    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Parent = MainGui
+    Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+    UIUtils:CreateShadow(MainFrame)
+    
+    -- Dragging Logic
+    local Dragging, DragInput, DragStart, StartPos
+    MainFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Dragging = true
+            DragStart = input.Position
+            StartPos = MainFrame.Position
+        end
+    end)
+    MainFrame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            DragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == DragInput and Dragging then
+            local Delta = input.Position - DragStart
+            MainFrame.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + Delta.X, StartPos.Y.Scale, StartPos.Y.Offset + Delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Dragging = false
+        end
+    end)
 
-    -- Sidebar (Izquierda)
-    local Sidebar = Instance.new("Frame", Main); Sidebar.Size = UDim2.new(0, 130, 1, 0); Sidebar.BackgroundColor3 = Color3.fromRGB(18, 18, 18); Instance.new("UICorner", Sidebar)
-    local TabList = Instance.new("UIListLayout", Sidebar); TabList.Padding = UDim.new(0, 5); TabList.HorizontalAlignment = "Center"
-    Instance.new("UIPadding", Sidebar).PaddingTop = UDim.new(0, 45)
+    -- Título y TikTok
+    local HubTitle = Instance.new("TextLabel")
+    HubTitle.Size = UDim2.new(1, 0, 0, 50)
+    HubTitle.Text = "CHRISSHUB MM2 V3"
+    HubTitle.TextColor3 = Color3.fromRGB(0, 255, 120)
+    HubTitle.Font = Enum.Font.GothamBlack
+    HubTitle.TextSize = 22
+    HubTitle.BackgroundTransparency = 1
+    HubTitle.Parent = MainFrame
 
-    -- Scrolling Content
-    local Container = Instance.new("ScrollingFrame", Main); Container.Size = UDim2.new(1, -150, 1, -70); Container.Position = UDim2.new(0, 140, 0, 45)
-    Container.BackgroundTransparency = 1; Container.ScrollBarThickness = 0
-    local ContentLayout = Instance.new("UIListLayout", Container); ContentLayout.Padding = UDim.new(0, 10)
+    local SocialLabel = Instance.new("TextLabel")
+    SocialLabel.Size = UDim2.new(1, 0, 0, 20)
+    SocialLabel.Position = UDim2.new(0, 0, 0, 45)
+    SocialLabel.Text = "TikTok: sasware32 | Sin Límites"
+    SocialLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+    SocialLabel.Font = Enum.Font.Gotham
+    SocialLabel.TextSize = 12
+    SocialLabel.BackgroundTransparency = 1
+    SocialLabel.Parent = MainFrame
 
-    -- TikTok Label
-    local TT = Instance.new("TextLabel", Main); TT.Size = UDim2.new(0, 200, 0, 20); TT.Position = UDim2.new(0, 140, 1, -25); TT.Text = "TikTok: "..CH_DATA.TikTok; TT.TextColor3 = Color3.fromRGB(150, 150, 150); TT.BackgroundTransparency = 1; TT.TextXAlignment = "Left"; TT.Font = "Code"
+    -- Scrolling Frame para funciones
+    local Scroll = Instance.new("ScrollingFrame")
+    Scroll.Size = UDim2.new(1, -20, 1, -100)
+    Scroll.Position = UDim2.new(0, 10, 0, 80)
+    Scroll.BackgroundTransparency = 1
+    Scroll.BorderSizePixel = 0
+    Scroll.CanvasSize = UDim2.new(0, 0, 0, 950)
+    Scroll.ScrollBarThickness = 3
+    Scroll.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 120)
+    Scroll.Parent = MainFrame
 
-    local function ClearPage()
-        for _,v in pairs(Container:GetChildren()) do if v:IsA("Frame") or v:IsA("TextButton") then v:Destroy() end end
-    end
+    local List = Instance.new("UIListLayout")
+    List.Padding = UDim.new(0, 10)
+    List.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    List.Parent = Scroll
 
-    local function CreateTab(name, iconId)
-        local b = Instance.new("TextButton", Sidebar); b.Size = UDim2.new(0.9, 0, 0, 42); b.Text = "  "..name; b.BackgroundColor3 = Color3.new(0,0,0); b.TextColor3 = Color3.new(1,1,1); b.Font = "Code"; b.TextXAlignment = "Left"; Instance.new("UICorner", b)
-        local img = Instance.new("ImageLabel", b); img.Size = UDim2.new(0,20,0,20); img.Position = UDim2.new(0.05,0,0.25,0); img.BackgroundTransparency = 1; img.Image = "rbxassetid://"..iconId; b.Text = "      "..name
-        
-        b.MouseButton1Click:Connect(function()
-            Ripple(b); ClearPage(); LoadPage(name)
+    -- Generador de Botones (Toggle)
+    local function CreateButton(Name, Prop)
+        local Btn = Instance.new("TextButton")
+        Btn.Size = UDim2.new(0.9, 0, 0, 45)
+        Btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        Btn.Text = Name .. ": OFF"
+        Btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        Btn.Font = Enum.Font.GothamBold
+        Btn.TextSize = 14
+        Btn.Parent = Scroll
+        Instance.new("UICorner", Btn)
+
+        Btn.MouseButton1Click:Connect(function()
+            Toggles[Prop] = not Toggles[Prop]
+            local Active = Toggles[Prop]
+            Btn.Text = Name .. ": " .. (Active and "ON" or "OFF")
+            UIUtils:ApplyTween(Btn, {
+                BackgroundColor3 = Active and Color3.fromRGB(0, 100, 50) or Color3.fromRGB(25, 25, 25),
+                TextColor3 = Active and Color3.new(1,1,1) or Color3.fromRGB(200, 200, 200)
+            })
         end)
     end
 
-    function LoadPage(name)
-        if name == "MAIN" then
-            local f = Instance.new("Frame", Container); f.Size = UDim2.new(1, -10, 0, 100); f.BackgroundColor3 = Color3.fromRGB(25,25,25); Instance.new("UICorner", f)
-            local l = Instance.new("TextLabel", f); l.Size = UDim2.new(1,0,1,0); l.Text = "CHRISSHUB V3 TITAN\nSTATUS: BYPASS OK\nBIENVENIDO!"; l.TextColor3 = Color3.fromRGB(0,255,120); l.BackgroundTransparency = 1; l.Font = "Code"
-        
-        elseif name == "ESP" then
-            local function ESPSet(title, var)
-                local f = Instance.new("Frame", Container); f.Size = UDim2.new(1,-10,0,90); f.BackgroundColor3 = Color3.fromRGB(25,25,25); Instance.new("UICorner", f)
-                local l = Instance.new("TextLabel", f); l.Size = UDim2.new(0.5,0,0,30); l.Position = UDim2.new(0.05,0,0,5); l.Text = title; l.TextColor3 = Color3.new(1,1,1); l.BackgroundTransparency = 1; l.TextXAlignment = "Left"; l.Font = "Code"
-                
-                local toggle = Instance.new("TextButton", f); toggle.Size = UDim2.new(0, 50, 0, 25); toggle.Position = UDim2.new(0.8,0,0.1,0); toggle.Text = ""; toggle.BackgroundColor3 = CH_DATA.Toggles.ESP and Color3.fromRGB(0,255,120) or Color3.new(0.2,0.2,0.2); Instance.new("UICorner", toggle)
-                toggle.MouseButton1Click:Connect(function() CH_DATA.Toggles.ESP = not CH_DATA.Toggles.ESP; toggle.BackgroundColor3 = CH_DATA.Toggles.ESP and Color3.fromRGB(0,255,120) or Color3.new(0.2,0.2,0.2) end)
-                
-                local colorBtn = Instance.new("TextButton", f); colorBtn.Size = UDim2.new(0.9,0,0,30); colorBtn.Position = UDim2.new(0.05,0,0.55,0); colorBtn.Text = "Color Actual: "..CH_DATA.ESP_Config[var].Name; colorBtn.BackgroundColor3 = Color3.new(0,0,0); colorBtn.TextColor3 = CH_DATA.ESP_Config[var].Color; Instance.new("UICorner", colorBtn)
-                colorBtn.MouseButton1Click:Connect(function()
-                    local options = {}; for k,_ in pairs(CH_DATA.ColorLibrary) do table.insert(options, k) end
-                    local current = table.find(options, CH_DATA.ESP_Config[var].Name)
-                    local nextIdx = (current % #options) + 1
-                    local nextName = options[nextIdx]
-                    CH_DATA.ESP_Config[var].Name = nextName
-                    CH_DATA.ESP_Config[var].Color = CH_DATA.ColorLibrary[nextName]
-                    colorBtn.Text = "Color Actual: "..nextName
-                    colorBtn.TextColor3 = CH_DATA.ESP_Config[var].Color
-                end)
-            end
-            ESPSet("ESP MURDERER", "M"); ESPSet("ESP SHERIFF", "S"); ESPSet("ESP INNOCENT", "I")
-        
-        elseif name == "COMBAT" then
-            local function AddToggle(txt, var)
-                local b = Instance.new("TextButton", Container); b.Size = UDim2.new(1,-10,0,45); b.Text = txt; b.BackgroundColor3 = CH_DATA.Toggles[var] and Color3.fromRGB(0,255,120) or Color3.fromRGB(25,25,25); b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b); b.Font = "Code"
-                b.MouseButton1Click:Connect(function() CH_DATA.Toggles[var] = not CH_DATA.Toggles[var]; b.BackgroundColor3 = CH_DATA.Toggles[var] and Color3.fromRGB(0,255,120) or Color3.fromRGB(25,25,25) end)
-            end
-            AddToggle("AIMBOT MASTER", "Aimbot"); AddToggle("AIMBOT LEGIT", "Legit"); AddToggle("KILL AURA (35 STUDS)", "KillAura")
-        end
+    -- Generador de Selectores de Color
+    local function CreateColorPicker(Role, InternalKey)
+        local Frame = Instance.new("Frame")
+        Frame.Size = UDim2.new(0.9, 0, 0, 50)
+        Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        Frame.Parent = Scroll
+        Instance.new("UICorner", Frame)
+
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(0.5, 0, 1, 0)
+        Label.Position = UDim2.new(0.05, 0, 0, 0)
+        Label.Text = "Color " .. Role
+        Label.TextColor3 = Color3.new(1,1,1)
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 14
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.BackgroundTransparency = 1
+        Label.Parent = Frame
+
+        local ColorBtn = Instance.new("TextButton")
+        ColorBtn.Size = UDim2.new(0.4, 0, 0.7, 0)
+        ColorBtn.Position = UDim2.new(0.55, 0, 0.15, 0)
+        ColorBtn.BackgroundColor3 = ColorLibrary[ESPConfig[InternalKey]]
+        ColorBtn.Text = ESPConfig[InternalKey]
+        ColorBtn.Font = Enum.Font.GothamBold
+        ColorBtn.TextSize = 12
+        ColorBtn.TextColor3 = Color3.new(1,1,1)
+        ColorBtn.Parent = Frame
+        Instance.new("UICorner", ColorBtn)
+
+        ColorBtn.MouseButton1Click:Connect(function()
+            local Current = ESPConfig[InternalKey]
+            local Index = table.find(ColorNames, Current)
+            local NextIndex = (Index % #ColorNames) + 1
+            local NewColor = ColorNames[NextIndex]
+            
+            ESPConfig[InternalKey] = NewColor
+            ColorBtn.Text = NewColor
+            ColorBtn.BackgroundColor3 = ColorLibrary[NewColor]
+        end)
     end
 
-    CreateTab("MAIN", "6034502925"); CreateTab("ESP", "6034502925"); CreateTab("COMBAT", "6034502925")
-    LoadPage("MAIN")
-
-    -- Botones Rápidos y Círculo de Reapertura (Todo Integrado)
-    local Open = Instance.new("TextButton", SG); Open.Size = UDim2.new(0,70,0,70); Open.Position = UDim2.new(0.02,0,0.4,0); Open.Text = "CH"; Open.BackgroundColor3 = Color3.new(0,0,0); Open.TextColor3 = Color3.fromRGB(0,255,120); Open.Visible = false; Instance.new("UICorner", Open).CornerRadius = UDim.new(1,0); local s = Instance.new("UIStroke", Open); s.Color = Color3.fromRGB(0,255,120); s.Thickness = 2
-    local Close = Instance.new("TextButton", Main); Close.Size = UDim2.new(0,30,0,30); Close.Position = UDim2.new(1,-35,0,5); Close.Text = "X"; Close.TextColor3 = Color3.new(1,0,0); Close.BackgroundTransparency = 1; Close.TextSize = 20
+    -- Agregar Elementos al Scroll
+    CreateButton("Visuales ESP", "ESP")
+    CreateButton("Aimbot Normal", "Aimbot")
+    CreateButton("Aimbot Legítimo", "AimbotLegit")
+    CreateButton("Aimbot (Focus Asesino)", "AimbotAsesino")
+    CreateButton("Kill Aura (35 Studs)", "KillAura")
+    CreateButton("Noclip Pro", "Noclip")
+    CreateButton("Salto Infinito", "InfJump")
+    CreateButton("Anti-AFK System", "AntiAFK")
     
-    Close.MouseButton1Click:Connect(function() Main.Visible = false; Open.Visible = true end)
-    Open.MouseButton1Click:Connect(function() Main.Visible = true; Open.Visible = false; Ripple(Open) end)
-
-    -- Floating System Buttons (Noclip Pro / InfJump)
-    local Floaters = Instance.new("Frame", SG); Floaters.Size = UDim2.new(0,60,0,130); Floaters.Position = UDim2.new(1,-70,0.5,-65); Floaters.BackgroundTransparency = 1
-    local function Quick(t, v)
-        local b = Instance.new("TextButton", Floaters); b.Size = UDim2.new(1,0,0,55); b.Text = t; b.BackgroundColor3 = Color3.new(0,0,0); b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b); local s = Instance.new("UIStroke", b); s.Color = Color3.new(1,1,1)
-        b.MouseButton1Click:Connect(function() CH_DATA.Toggles[v] = not CH_DATA.Toggles[v]; s.Color = CH_DATA.Toggles[v] and Color3.fromRGB(0,255,120) or Color3.new(1,1,1); b.TextColor3 = CH_DATA.Toggles[v] and Color3.fromRGB(0,255,120) or Color3.new(1,1,1) end)
-    end
-    Quick("NC", "Noclip"); Quick("JP", "InfJump")
+    Instance.new("Frame", Scroll).Size = UDim2.new(1,0,0,10) -- Espaciador
+    
+    CreateColorPicker("Asesino", "Murderer")
+    CreateColorPicker("Sheriff", "Sheriff")
+    CreateColorPicker("Inocente", "Innocent")
 end
 
--- [ MOTOR LÓGICO V3 ]
-RunService.Stepped:Connect(function()
-    -- Noclip Pro (Tu código optimizado)
-    if CH_DATA.Toggles.Noclip and lp.Character then
-        for _,v in pairs(lp.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
-    end
-    
-    -- ESP TITAN
-    if CH_DATA.Toggles.ESP then
-        for _,p in pairs(Players:GetPlayers()) do
-            if p ~= lp and p.Character then
-                local isM = p.Character:FindFirstChild("Knife") or p.Backpack:FindFirstChild("Knife")
-                local isS = p.Character:FindFirstChild("Gun") or p.Backpack:FindFirstChild("Gun")
-                local mode = isM and "M" or (isS and "S" or "I")
-                local cfg = CH_DATA.ESP_Config[mode]
+-- =============================================================
+-- [9] MOTORES FUNCIONALES (LÓGICA DE JUEGO)
+-- =============================================================
+
+-- Motor de ESP
+local function UpdateESP()
+    for _, Plr in ipairs(Players:GetPlayers()) do
+        if Plr ~= LocalPlayer then
+            local Char = Plr.Character
+            if Char then
+                local Highlight = Char:FindFirstChild("ChrissHighlight") or Instance.new("Highlight")
+                Highlight.Name = "ChrissHighlight"
+                Highlight.Parent = Char
                 
-                local h = p.Character:FindFirstChild("TitanHighlight")
-                if not h then h = Instance.new("Highlight", p.Character); h.Name = "TitanHighlight"; h.OutlineColor = Color3.new(1,1,1) end
-                h.FillColor = cfg.Color; h.FillTransparency = 0.5
+                if Toggles.ESP then
+                    local Role = "Innocent"
+                    if Char:FindFirstChild("Knife") or Plr.Backpack:FindFirstChild("Knife") then Role = "Murderer"
+                    elseif Char:FindFirstChild("Gun") or Plr.Backpack:FindFirstChild("Gun") then Role = "Sheriff" end
+                    
+                    Highlight.Enabled = true
+                    Highlight.FillColor = ColorLibrary[ESPConfig[Role]]
+                    Highlight.OutlineColor = ColorLibrary[ESPConfig[Role]]
+                    Highlight.FillTransparency = 0.5
+                else
+                    Highlight.Enabled = false
+                end
             end
         end
-    else
-        for _,p in pairs(Players:GetPlayers()) do if p.Character and p.Character:FindFirstChild("TitanHighlight") then p.Character.TitanHighlight:Destroy() end end
     end
+end
+
+-- Motor de Aimbot
+local function GetAimbotTarget(Mode)
+    local Target = nil
+    local MaxDist = math.huge
     
-    -- Kill Aura 35 Studs
-    if CH_DATA.Toggles.KillAura and lp.Character and lp.Character:FindFirstChild("Knife") then
-        for _,p in pairs(Players:GetPlayers()) do
-            if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = (lp.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
-                if dist <= 35 then
-                    firetouchinterest(p.Character.HumanoidRootPart, lp.Character.Knife.Handle, 0)
-                    firetouchinterest(p.Character.HumanoidRootPart, lp.Character.Knife.Handle, 1)
+    for _, Plr in ipairs(Players:GetPlayers()) do
+        if Plr ~= LocalPlayer and Plr.Character and Plr.Character:FindFirstChild("Head") then
+            local Head = Plr.Character.Head
+            local Pos, OnScreen = Camera:WorldToViewportPoint(Head.Position)
+            
+            if OnScreen then
+                local Mag = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(Pos.X, Pos.Y)).Magnitude
+                if Mag < 150 and Mag < MaxDist then
+                    if Mode == "Asesino" then
+                        if Plr.Character:FindFirstChild("Knife") or Plr.Backpack:FindFirstChild("Knife") then
+                            Target = Head
+                            MaxDist = Mag
+                        end
+                    else
+                        Target = Head
+                        MaxDist = Mag
+                    end
                 end
             end
         end
     end
+    return Target
+end
+
+-- Loop de ejecución (Heartbeat para máxima precisión)
+RunService.Heartbeat:Connect(function()
+    UpdateESP()
+    
+    -- Kill Aura
+    if Toggles.KillAura and LocalPlayer.Character and (LocalPlayer.Character:FindFirstChild("Knife") or LocalPlayer.Backpack:FindFirstChild("Knife")) then
+        for _, Plr in ipairs(Players:GetPlayers()) do
+            if Plr ~= LocalPlayer and Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
+                local Dist = (LocalPlayer.Character.HumanoidRootPart.Position - Plr.Character.HumanoidRootPart.Position).Magnitude
+                if Dist <= 35 then
+                    local Knife = LocalPlayer.Character:FindFirstChild("Knife") or LocalPlayer.Backpack:FindFirstChild("Knife")
+                    if Knife and Knife:FindFirstChild("Handle") then
+                        Knife.Handle.CFrame = Plr.Character.HumanoidRootPart.CFrame
+                    end
+                end
+            end
+        end
+    end
+
+    -- Noclip
+    if Toggles.Noclip and LocalPlayer.Character then
+        for _, Part in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if Part:IsA("BasePart") then Part.CanCollide = false end
+        end
+    end
+
+    -- Anti-AFK
+    if Toggles.AntiAFK then
+        local VirtualUser = game:GetService("VirtualUser")
+        LocalPlayer.Idled:Connect(function()
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new())
+        end)
+    end
 end)
 
--- Aimbot Logic
+-- Aimbot Render Loop
 RunService.RenderStepped:Connect(function()
-    if CH_DATA.Toggles.Aimbot then
-        local target = nil; local dist = math.huge
-        for _,p in pairs(Players:GetPlayers()) do
-            if p ~= lp and p.Character and p.Character:FindFirstChild("Head") then
-                local head = p.Character.Head; local screenPos, onScreen = camera:WorldToViewportPoint(head.Position)
-                if onScreen then
-                    local d = (head.Position - camera.CFrame.Position).Magnitude
-                    if CH_DATA.Toggles.Legit then
-                        local ray = Ray.new(camera.CFrame.Position, (head.Position - camera.CFrame.Position).Unit * 500)
-                        local hit = Workspace:FindPartOnRayWithIgnoreList(ray, {lp.Character})
-                        if hit and hit:IsDescendantOf(p.Character) and d < dist then target = head; dist = d end
-                    elseif d < dist then target = head; dist = d end
-                end
+    local ActiveMode = nil
+    if Toggles.Aimbot then ActiveMode = "Normal"
+    elseif Toggles.AimbotLegit then ActiveMode = "Legit"
+    elseif Toggles.AimbotAsesino then ActiveMode = "Asesino" end
+    
+    if ActiveMode then
+        local Target = GetAimbotTarget(ActiveMode)
+        if Target then
+            if ActiveMode == "Legit" then
+                UIUtils:ApplyTween(Camera, {CFrame = CFrame.new(Camera.CFrame.Position, Target.Position)}, 0.1)
+            else
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, Target.Position)
             end
         end
-        if target then camera.CFrame = CFrame.new(camera.CFrame.Position, target.Position) end
     end
 end)
 
--- InfJump y Anti-AFK
-UserInputService.JumpRequest:Connect(function() if CH_DATA.Toggles.InfJump and lp.Character:FindFirstChildOfClass("Humanoid") then lp.Character:FindFirstChildOfClass("Humanoid"):ChangeState(3) end end)
-lp.Idled:Connect(function() if CH_DATA.Toggles.AntiAFK then game:GetService("VirtualUser"):CaptureController(); game:GetService("VirtualUser"):ClickButton2(Vector2.new()) end end)
-
--- Soporte Doble Toque para Noclip (Oculto)
-local lastTap = 0
-UserInputService.TouchTap:Connect(function() if tick() - lastTap < 0.3 then CH_DATA.Toggles.Noclip = not CH_DATA.Toggles.Noclip end; lastTap = tick() end)
-
-StartIntro()
+-- Inf Jump
+UserInputService.JumpRequest:Connect(function()
+    if Toggles.InfJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+            
