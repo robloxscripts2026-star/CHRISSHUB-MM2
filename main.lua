@@ -1,13 +1,18 @@
 --[[
-    CHRISSHUB MM2 V23 - TITAN MOBILE ULTRA
-    -------------------------------------------
-    - INTRO: Hacker Rain (Lluvia de códigos) + Neón
-    - LOGIN: Verificación "VERIFYING..." con Key
-    - UI: Adaptada a Táctil (Botones de acción rápida)
-    - TIKTOK: sasware32 (Sello de autenticidad)
-    - ESP: Categorías Murder/Sheriff/Innocent + 10 Colores
-    - COMBAT: Aimbot (Legit / Murderer Target)
-    -------------------------------------------
+    CHRISSHUB MM2 V24 - ULTIMATE GITHUB EDITION
+    -------------------------------------------------------
+    DESARROLLADO PARA: Chris (Gama Alta / Mobile)
+    PLATAFORMA: GitHub / Roblox Executor
+    CATEGORÍA: MM2 Script Elite
+    -------------------------------------------------------
+    CARACTERÍSTICAS:
+    - Motor de Lluvia Hacker Binaria (60 FPS)
+    - Sistema de Keys Dual (CHRIS2026 / 14151)
+    - UI Estilo Ninja (Header Gris, Logo Flotante, Bordes Neón)
+    - Botones de Acción Rápida para Móvil con Haptic Feedback Visual
+    - ESP Avanzado por Categorías con Selector de Colores Dinámicos
+    - Optimización de Memoria para Dispositivos de Gama Alta
+    -------------------------------------------------------
 ]]
 
 -- [ SERVICIOS ]
@@ -16,191 +21,319 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
-local Workspace = game:GetService("Workspace")
+local Debris = game:GetService("Debris")
+local Lighting = game:GetService("Lighting")
 
-local lp = Players.LocalPlayer
-local camera = Workspace.CurrentCamera
-local mouse = lp:GetMouse()
+-- [ VARIABLES LOCALES ]
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
 
--- [ DATA MAESTRA ]
-local CH_DATA = {
-    Key = "CHRIS2026",
+-- [ CONFIGURACIÓN MAESTRA ]
+local CH_CONFIG = {
+    Version = "V24.0.1 (ULTIMATE)",
+    ValidKeys = {"CHRIS2026", "14151"},
     TikTok = "sasware32",
-    CurrentColors = {
-        Murderer = Color3.fromRGB(255, 0, 0),
-        Sheriff = Color3.fromRGB(0, 100, 255),
-        Innocent = Color3.fromRGB(0, 255, 100)
+    Theme = {
+        MainColor = Color3.fromRGB(0, 255, 120),
+        AccentColor = Color3.fromRGB(0, 200, 255),
+        SecondaryColor = Color3.fromRGB(120, 0, 255),
+        BackgroundColor = Color3.fromRGB(10, 10, 10),
+        HeaderColor = Color3.fromRGB(45, 45, 45)
     },
-    Toggles = {
-        ESP_M = false, ESP_S = false, ESP_I = false,
-        Aimbot = false, AimbotLegit = false, AimbotMurderer = false,
-        Noclip = false, InfJump = false, AntiAFK = true
+    ESP = {
+        Murderer = {Enabled = false, Color = Color3.fromRGB(255, 0, 0)},
+        Sheriff = {Enabled = false, Color = Color3.fromRGB(0, 120, 255)},
+        Innocent = {Enabled = false, Color = Color3.fromRGB(0, 255, 100)}
     },
-    ColorMap = {
-        ["Rojo"] = Color3.fromRGB(255, 0, 0), ["Naranja"] = Color3.fromRGB(255, 127, 0),
-        ["Amarillo"] = Color3.fromRGB(255, 255, 0), ["Verde"] = Color3.fromRGB(0, 255, 0),
-        ["Azul"] = Color3.fromRGB(0, 0, 255), ["Morado"] = Color3.fromRGB(127, 0, 255),
-        ["Negro"] = Color3.fromRGB(0, 0, 0), ["Blanco"] = Color3.fromRGB(255, 255, 255),
-        ["Rosa"] = Color3.fromRGB(255, 105, 180), ["Gris"] = Color3.fromRGB(128, 128, 128)
+    Powers = {
+        Noclip = false,
+        InfJump = false,
+        AntiAFK = true,
+        Speed = 16
+    },
+    Colors = {
+        ["Rojo"] = Color3.fromRGB(255, 0, 0),
+        ["Azul"] = Color3.fromRGB(0, 0, 255),
+        ["Verde"] = Color3.fromRGB(0, 255, 0),
+        ["Amarillo"] = Color3.fromRGB(255, 255, 0),
+        ["Naranja"] = Color3.fromRGB(255, 165, 0),
+        ["Morado"] = Color3.fromRGB(128, 0, 128),
+        ["Rosa"] = Color3.fromRGB(255, 192, 203),
+        ["Blanco"] = Color3.fromRGB(255, 255, 255),
+        ["Negro"] = Color3.fromRGB(0, 0, 0),
+        ["Gris"] = Color3.fromRGB(128, 128, 128)
     }
 }
 
--- [ GUI PRINCIPAL ]
-if CoreGui:FindFirstChild("ChrisTitanMobile") then CoreGui.ChrisTitanMobile:Destroy() end
-local ScreenGui = Instance.new("ScreenGui", CoreGui); ScreenGui.Name = "ChrisTitanMobile"
+-- [ UTILIDADES DE UI ]
+if CoreGui:FindFirstChild("CHRIS_ULTIMATE_V24") then CoreGui.CHRIS_ULTIMATE_V24:Destroy() end
+local MainGui = Instance.new("ScreenGui", CoreGui); MainGui.Name = "CHRIS_ULTIMATE_V24"
 
-local function Animate(obj, duration, props)
-    TweenService:Create(obj, TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props):Play()
+local function ApplyTween(obj, duration, properties, style, direction)
+    local info = TweenInfo.new(duration, style or Enum.EasingStyle.Quart, direction or Enum.EasingDirection.Out)
+    local tween = TweenService:Create(obj, info, properties)
+    tween:Play()
+    return tween
 end
 
--- [ MOTOR LLUVIA HACKER ]
-local function CreateHackerRain(parent)
+local function CreateClickEffect(button)
+    local originalSize = button.Size
+    local targetSize = UDim2.new(originalSize.X.Scale * 0.95, originalSize.X.Offset, originalSize.Y.Scale * 0.95, originalSize.Y.Offset)
+    
+    button.MouseButton1Down:Connect(function()
+        ApplyTween(button, 0.1, {Size = targetSize}, Enum.EasingStyle.Sine)
+    end)
+    
+    button.MouseButton1Up:Connect(function()
+        ApplyTween(button, 0.2, {Size = originalSize}, Enum.EasingStyle.Back)
+    end)
+end
+
+-- [ MOTOR DE LLUVIA BINARIA ]
+local function InitHackerRain(container)
     task.spawn(function()
-        while parent and parent.Parent do
-            local text = Instance.new("TextLabel", parent)
-            text.Size = UDim2.new(0, 20, 0, 20)
-            text.Position = UDim2.new(math.random(), 0, -0.1, 0)
-            text.Text = math.random(0, 1)
-            text.TextColor3 = Color3.fromRGB(0, 255, 120)
-            text.BackgroundTransparency = 1
-            text.Font = "Code"
-            text.TextTransparency = 0.4
-            Animate(text, 3, {Position = UDim2.new(text.Position.X.Scale, 0, 1.1, 0), TextTransparency = 1})
-            task.wait(0.1)
-            game:GetService("Debris"):AddItem(text, 3.1)
+        while container and container.Parent do
+            local label = Instance.new("TextLabel")
+            label.Parent = container
+            label.BackgroundTransparency = 1
+            label.Size = UDim2.new(0, 20, 0, 20)
+            label.Position = UDim2.new(math.random(), 0, -0.05, 0)
+            label.Text = tostring(math.random(0, 1))
+            label.TextColor3 = CH_CONFIG.Theme.MainColor
+            label.TextSize = math.random(14, 22)
+            label.Font = Enum.Font.Code
+            label.TextTransparency = 0.3
+            
+            local dropDuration = math.random(2.5, 4.5)
+            ApplyTween(label, dropDuration, {
+                Position = UDim2.new(label.Position.X.Scale, 0, 1.05, 0),
+                TextTransparency = 1
+            }, Enum.EasingStyle.Linear)
+            
+            Debris:AddItem(label, dropDuration + 0.1)
+            task.wait(0.04)
         end
     end)
 end
 
--- [ INTRO HACKER ]
-local function RunIntro()
-    local IntroFrame = Instance.new("Frame", ScreenGui)
-    IntroFrame.Size = UDim2.new(1, 0, 1, 0); IntroFrame.BackgroundTransparency = 1
-    CreateHackerRain(IntroFrame)
+-- [ 1. INTRO SYSTEM ]
+local function StartIntro()
+    local IntroFrame = Instance.new("Frame", MainGui)
+    IntroFrame.Size = UDim2.new(1, 0, 1, 0)
+    IntroFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+    IntroFrame.ZIndex = 100
     
-    local Title = Instance.new("TextLabel", IntroFrame)
-    Title.Size = UDim2.new(1, 0, 0, 100); Title.Position = UDim2.new(0, 0, 0.45, 0)
-    Title.BackgroundTransparency = 1; Title.Text = "CHRISSHUB"; Title.Font = "GothamBlack"
-    Title.TextSize = 100; Title.TextColor3 = Color3.fromRGB(0, 255, 255); Title.TextTransparency = 1
-    Instance.new("UIStroke", Title).Thickness = 4
+    InitHackerRain(IntroFrame)
     
-    Animate(Title, 1, {TextTransparency = 0})
-    task.wait(3); Animate(Title, 1, {TextTransparency = 1, TextSize = 140})
-    task.wait(1); IntroFrame:Destroy(); ShowLogin()
+    local Logo = Instance.new("TextLabel", IntroFrame)
+    Logo.Size = UDim2.new(1, 0, 0, 100)
+    Logo.Position = UDim2.new(0, 0, 0.45, 0)
+    Logo.BackgroundTransparency = 1
+    Logo.Text = "CHRISSHUB"
+    Logo.TextColor3 = CH_CONFIG.Theme.AccentColor
+    Logo.TextSize = 100
+    Logo.Font = Enum.Font.GothamBlack
+    Logo.TextTransparency = 1
+    
+    local Stroke = Instance.new("UIStroke", Logo)
+    Stroke.Thickness = 6
+    Stroke.Color = CH_CONFIG.Theme.AccentColor
+    Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+    
+    ApplyTween(Logo, 1.5, {TextTransparency = 0})
+    task.wait(3.5)
+    ApplyTween(Logo, 1, {TextTransparency = 1, TextSize = 140})
+    ApplyTween(IntroFrame, 1.5, {BackgroundTransparency = 1})
+    task.wait(1.5)
+    IntroFrame:Destroy()
+    ShowLoginTerminal()
 end
 
--- [ LOGIN SYSTEM ]
-function ShowLogin()
-    local Login = Instance.new("Frame", ScreenGui)
-    Login.Size = UDim2.new(0, 310, 0, 240); Login.Position = UDim2.new(0.5, -155, -0.5, 0)
-    Login.BackgroundColor3 = Color3.fromRGB(10, 10, 10); Instance.new("UICorner", Login)
-    Instance.new("UIStroke", Login).Color = Color3.fromRGB(0, 255, 120)
+-- [ 2. LOGIN TERMINAL ]
+function ShowLoginTerminal()
+    local LoginFrame = Instance.new("Frame", MainGui)
+    LoginFrame.Size = UDim2.new(0, 340, 0, 260)
+    LoginFrame.Position = UDim2.new(0.5, -170, 0.5, -130)
+    LoginFrame.BackgroundColor3 = CH_CONFIG.Theme.BackgroundColor
+    Instance.new("UICorner", LoginFrame)
+    local Border = Instance.new("UIStroke", LoginFrame); Border.Color = CH_CONFIG.Theme.MainColor; Border.Thickness = 2
     
-    local T = Instance.new("TextLabel", Login)
-    T.Size = UDim2.new(1,0,0,50); T.Text = "LOGIN TERMINAL"; T.Font = "Code"; T.TextColor3 = Color3.new(1,1,1); T.BackgroundTransparency = 1
+    local Header = Instance.new("TextLabel", LoginFrame)
+    Header.Size = UDim2.new(1, 0, 0, 50); Header.Text = "ACCESS TERMINAL"; Header.TextColor3 = Color3.new(1, 1, 1); Header.BackgroundTransparency = 1; Header.Font = Enum.Font.Code; Header.TextSize = 18
     
-    local In = Instance.new("TextBox", Login)
-    In.Size = UDim2.new(0.8,0,0,40); In.Position = UDim2.new(0.1,0,0.4,0); In.PlaceholderText = "> Key..."; In.BackgroundColor3 = Color3.fromRGB(20,20,20); In.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", In)
+    local KeyInput = Instance.new("TextBox", LoginFrame)
+    KeyInput.Size = UDim2.new(0.85, 0, 0, 45); KeyInput.Position = UDim2.new(0.075, 0, 0.4, 0); KeyInput.PlaceholderText = "> Ingrese la Key..."; KeyInput.BackgroundColor3 = Color3.fromRGB(20, 20, 20); KeyInput.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", KeyInput)
     
-    local B = Instance.new("TextButton", Login)
-    B.Size = UDim2.new(0.8,0,0,40); B.Position = UDim2.new(0.1,0,0.7,0); B.Text = "ENTRAR"; B.BackgroundColor3 = Color3.fromRGB(0, 255, 120); Instance.new("UICorner", B)
+    local VerifyBtn = Instance.new("TextButton", LoginFrame)
+    VerifyBtn.Size = UDim2.new(0.85, 0, 0, 45); VerifyBtn.Position = UDim2.new(0.075, 0, 0.7, 0); VerifyBtn.Text = "VERIFICAR"; VerifyBtn.BackgroundColor3 = CH_CONFIG.Theme.MainColor; VerifyBtn.Font = Enum.Font.GothamBold; VerifyBtn.TextColor3 = Color3.new(0, 0, 0); Instance.new("UICorner", VerifyBtn)
     
-    Animate(Login, 1, {Position = UDim2.new(0.5, -155, 0.5, -120)})
+    CreateClickEffect(VerifyBtn)
     
-    B.MouseButton1Click:Connect(function()
-        if In.Text == CH_DATA.Key or In.Text == "14151" then
-            B.Text = "VERIFYING KEY..."; task.wait(1.5)
-            B.Text = "VERIFIED (ENGLISH 🥵)"; Animate(Login, 0.5, {Position = UDim2.new(0.5, -155, 1.5, 0)})
-            task.wait(0.6); Login:Destroy(); ShowMain()
+    VerifyBtn.MouseButton1Click:Connect(function()
+        local input = KeyInput.Text
+        local isCorrect = false
+        for _, k in pairs(CH_CONFIG.ValidKeys) do if input == k then isCorrect = true end end
+        
+        if isCorrect then
+            VerifyBtn.Text = "VERIFYING..."; ApplyTween(VerifyBtn, 0.5, {BackgroundColor3 = Color3.fromRGB(200, 200, 0)})
+            task.wait(1.5)
+            VerifyBtn.Text = "ACCESS GRANTED (ENGLISH 🥵)"; ApplyTween(VerifyBtn, 0.3, {BackgroundColor3 = Color3.fromRGB(0, 255, 0)})
+            task.wait(0.6); LoginFrame:Destroy(); BuildMainHub()
         else
-            T.Text = "KEY INCORRECTA"; T.TextColor3 = Color3.new(1,0,0)
-            task.wait(1.5); T.Text = "LOGIN TERMINAL"; T.TextColor3 = Color3.new(1,1,1)
+            VerifyBtn.Text = "KEY INVALIDA"; VerifyBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            task.wait(1.5); VerifyBtn.Text = "VERIFICAR"; VerifyBtn.BackgroundColor3 = CH_CONFIG.Theme.MainColor
         end
     end)
 end
 
--- [ PANEL PRINCIPAL ]
-function ShowMain()
-    local Main = Instance.new("Frame", ScreenGui)
-    Main.Size = UDim2.new(0, 400, 0, 260); Main.Position = UDim2.new(0.5, -200, 0.5, -130)
-    Main.BackgroundColor3 = Color3.fromRGB(12, 12, 12); Instance.new("UICorner", Main)
-    Instance.new("UIStroke", Main).Color = Color3.fromRGB(0, 255, 255)
-
+-- [ 3. MAIN HUB ]
+function BuildMainHub()
+    local MainFrame = Instance.new("Frame", MainGui)
+    MainFrame.Size = UDim2.new(0, 480, 0, 340)
+    MainFrame.Position = UDim2.new(0.5, -240, 0.5, -170)
+    MainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+    Instance.new("UICorner", MainFrame)
+    local MainStroke = Instance.new("UIStroke", MainFrame); MainStroke.Color = CH_CONFIG.Theme.MainColor; MainStroke.Thickness = 2
+    
+    -- Barra Superior (Gris Estilo Imagen)
+    local HeaderBar = Instance.new("Frame", MainFrame)
+    HeaderBar.Size = UDim2.new(1, 0, 0, 45); HeaderBar.BackgroundColor3 = CH_CONFIG.Theme.HeaderColor; Instance.new("UICorner", HeaderBar)
+    
+    -- Logo Ninja Flotante
+    local LogoCirc = Instance.new("Frame", MainFrame)
+    LogoCirc.Size = UDim2.new(0, 65, 0, 65); LogoCirc.Position = UDim2.new(0.5, -32.5, 0, -32.5); LogoCirc.BackgroundColor3 = Color3.new(0, 0, 0)
+    Instance.new("UICorner", LogoCirc).CornerRadius = UDim.new(1, 0)
+    local LogoStroke = Instance.new("UIStroke", LogoCirc); LogoStroke.Color = CH_CONFIG.Theme.SecondaryColor; LogoStroke.Thickness = 2
+    
+    local NinjaIcon = Instance.new("ImageLabel", LogoCirc)
+    NinjaIcon.Size = UDim2.new(0.8, 0, 0.8, 0); NinjaIcon.Position = UDim2.new(0.1, 0, 0.1, 0); NinjaIcon.BackgroundTransparency = 1; NinjaIcon.Image = "rbxassetid://6031068833"
+    
     -- TikTok
-    local TT = Instance.new("TextLabel", Main); TT.Size = UDim2.new(1,0,0,20); TT.Position = UDim2.new(0,0,1,-20); TT.Text = "Sigueme en TikTok: " .. CH_DATA.TikTok; TT.TextColor3 = Color3.new(0.6,0.6,0.6); TT.BackgroundTransparency = 1; TT.Font = "Code"
+    local Credits = Instance.new("TextLabel", MainFrame)
+    Credits.Size = UDim2.new(1, 0, 0, 25); Credits.Position = UDim2.new(0, 0, 1, -25); Credits.Text = "CHRISSHUB | TikTok: " .. CH_CONFIG.TikTok; Credits.TextColor3 = Color3.new(0.5, 0.5, 0.5); Credits.BackgroundTransparency = 1; Credits.Font = Enum.Font.Code
+    
+    -- Botones de Minimizar
+    local CloseBtn = Instance.new("TextButton", MainFrame)
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30); CloseBtn.Position = UDim2.new(1, -40, 0, 7); CloseBtn.Text = "X"; CloseBtn.TextColor3 = Color3.new(1, 0, 0); CloseBtn.BackgroundTransparency = 1; CloseBtn.Font = Enum.Font.GothamBold; CloseBtn.TextSize = 20
+    
+    local MinimizeBtn = Instance.new("TextButton", MainGui)
+    MinimizeBtn.Size = UDim2.new(0, 70, 0, 70); MinimizeBtn.Position = UDim2.new(0.05, 0, 0.4, 0); MinimizeBtn.BackgroundColor3 = Color3.new(0, 0, 0); MinimizeBtn.Text = "CH-HUB"; MinimizeBtn.TextColor3 = CH_CONFIG.Theme.MainColor; MinimizeBtn.Visible = false; Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(1, 0); Instance.new("UIStroke", MinimizeBtn).Color = CH_CONFIG.Theme.MainColor
+    
+    CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MinimizeBtn.Visible = true end)
+    MinimizeBtn.MouseButton1Click:Connect(function() MainFrame.Visible = true; MinimizeBtn.Visible = false; CreateClickEffect(MinimizeBtn) end)
 
-    -- Minimizar
-    local Close = Instance.new("TextButton", Main); Close.Size = UDim2.new(0, 25, 0, 25); Close.Position = UDim2.new(1, -30, 0, 5); Close.Text = "X"; Close.TextColor3 = Color3.new(1,0,0); Close.BackgroundTransparency = 1
-    local Mini = Instance.new("TextButton", ScreenGui); Mini.Size = UDim2.new(0, 60, 0, 60); Mini.Position = UDim2.new(0.05, 0, 0.05, 0); Mini.Text = "CH-HUB"; Mini.Visible = false; Mini.BackgroundColor3 = Color3.new(0,0,0); Instance.new("UICorner", Mini).CornerRadius = UDim.new(1,0); Instance.new("UIStroke", Mini).Color = Color3.fromRGB(0, 255, 255)
+    -- Scrolling de Opciones
+    local Content = Instance.new("ScrollingFrame", MainFrame)
+    Content.Size = UDim2.new(1, -20, 1, -90); Content.Position = UDim2.new(0, 10, 0, 55); Content.BackgroundTransparency = 1; Content.ScrollBarThickness = 2; Content.ScrollBarImageColor3 = CH_CONFIG.Theme.MainColor
+    local List = Instance.new("UIListLayout", Content); List.Padding = UDim.new(0, 12)
 
-    Close.MouseButton1Click:Connect(function() Main.Visible = false; Mini.Visible = true end)
-    Mini.MouseButton1Click:Connect(function() Main.Visible = true; Mini.Visible = false end)
-
-    -- Botones de Acción Rápida (Móvil)
-    local ActionList = Instance.new("Frame", ScreenGui); ActionList.Size = UDim2.new(0, 50, 0, 160); ActionList.Position = UDim2.new(1, -60, 0.5, -80); ActionList.BackgroundTransparency = 1
-    Instance.new("UIListLayout", ActionList).Padding = UDim.new(0, 10)
-
-    local function QuickButton(text, var)
-        local B = Instance.new("TextButton", ActionList); B.Size = UDim2.new(1,0,0,45); B.Text = text; B.BackgroundColor3 = Color3.new(0.1,0.1,0.1); B.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", B)
-        Instance.new("UIStroke", B).Color = Color3.new(1,1,1)
-        B.MouseButton1Click:Connect(function()
-            CH_DATA.Toggles[var] = not CH_DATA.Toggles[var]
-            B.BackgroundColor3 = CH_DATA.Toggles[var] and Color3.fromRGB(0, 255, 120) or Color3.new(0.1,0.1,0.1)
+    -- [ FUNCIÓN PARA CREAR CATEGORÍAS DE ESP ]
+    local function CreateESPSection(title, configKey)
+        local Section = Instance.new("Frame", Content)
+        Section.Size = UDim2.new(1, 0, 0, 80); Section.BackgroundColor3 = Color3.fromRGB(20, 20, 20); Instance.new("UICorner", Section)
+        
+        local TitleLabel = Instance.new("TextLabel", Section)
+        TitleLabel.Size = UDim2.new(0.6, 0, 0, 30); TitleLabel.Position = UDim2.new(0.05, 0, 0.05, 0); TitleLabel.Text = title; TitleLabel.TextColor3 = Color3.new(1, 1, 1); TitleLabel.BackgroundTransparency = 1; TitleLabel.Font = Enum.Font.Code; TitleLabel.TextXAlignment = "Left"
+        
+        local Toggle = Instance.new("TextButton", Section)
+        Toggle.Size = UDim2.new(0, 50, 0, 25); Toggle.Position = UDim2.new(0.8, 0, 0.1, 0); Toggle.Text = ""; Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50); Instance.new("UICorner", Toggle)
+        
+        Toggle.MouseButton1Click:Connect(function()
+            CH_CONFIG.ESP[configKey].Enabled = not CH_CONFIG.ESP[configKey].Enabled
+            ApplyTween(Toggle, 0.3, {BackgroundColor3 = CH_CONFIG.ESP[configKey].Enabled and CH_CONFIG.Theme.MainColor or Color3.fromRGB(50, 50, 50)})
+            CreateClickEffect(Toggle)
+        end)
+        
+        local ColorInput = Instance.new("TextBox", Section)
+        ColorInput.Size = UDim2.new(0.9, 0, 0, 30); ColorInput.Position = UDim2.new(0.05, 0, 0.55, 0); ColorInput.PlaceholderText = "Escriba un color (Ej: Rojo, Azul...)"; ColorInput.BackgroundColor3 = Color3.new(0, 0, 0); ColorInput.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", ColorInput)
+        
+        ColorInput.FocusLost:Connect(function()
+            local clr = CH_CONFIG.Colors[ColorInput.Text]
+            if clr then
+                CH_CONFIG.ESP[configKey].Color = clr
+                ColorInput.TextColor3 = clr
+            end
         end)
     end
 
-    QuickButton("NC", "Noclip") -- F4
-    QuickButton("JP", "InfJump") -- F5
-    QuickButton("AFK", "AntiAFK") -- F6
+    CreateESPSection("ESP ASESINO", "Murderer")
+    CreateESPSection("ESP SHERIFF", "Sheriff")
+    CreateESPSection("ESP INOCENTES", "Innocent")
 
-    -- Contenido
-    local TabContainer = Instance.new("Frame", Main); TabContainer.Size = UDim2.new(0, 100, 1, -40); TabContainer.Position = UDim2.new(0, 5, 0, 10); TabContainer.BackgroundTransparency = 1
-    local Pages = Instance.new("Frame", Main); Pages.Size = UDim2.new(1, -120, 1, -40); Pages.Position = UDim2.new(0, 110, 0, 10); Pages.BackgroundTransparency = 1
-    Instance.new("UIListLayout", TabContainer).Padding = UDim.new(0, 5)
-
-    local function AddESP(parent, label, var)
-        local F = Instance.new("Frame", parent); F.Size = UDim2.new(1,0,0,60); F.BackgroundColor3 = Color3.fromRGB(20,20,20); Instance.new("UICorner", F)
-        local L = Instance.new("TextLabel", F); L.Size = UDim2.new(0.6,0,0,25); L.Text = label; L.TextColor3 = Color3.new(1,1,1); L.BackgroundTransparency = 1
-        local T = Instance.new("TextButton", F); T.Size = UDim2.new(0, 35, 0, 18); T.Position = UDim2.new(0.7,0,0,4); T.Text = ""; T.BackgroundColor3 = Color3.new(0.2,0.2,0.2); Instance.new("UICorner", T)
-        T.MouseButton1Click:Connect(function() CH_DATA.Toggles[var] = not CH_DATA.Toggles[var]; T.BackgroundColor3 = CH_DATA.Toggles[var] and Color3.new(0,1,1) or Color3.new(0.2,0.2,0.2) end)
-        local C = Instance.new("TextBox", F); C.Size = UDim2.new(0.9,0,0,22); C.Position = UDim2.new(0.05,0,0.5,0); C.PlaceholderText = "Color (Ej: Rojo)"; C.BackgroundColor3 = Color3.new(0.1,0.1,0.1); C.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", C)
-        C.FocusLost:Connect(function() local col = CH_DATA.ColorMap[C.Text]; if col then if var=="ESP_M" then CH_DATA.CurrentColors.Murderer=col elseif var=="ESP_S" then CH_DATA.CurrentColors.Sheriff=col else CH_DATA.CurrentColors.Innocent=col end; C.TextColor3=col end end)
+    -- Botones Rápidos (Flotantes - Mobile)
+    local SideBar = Instance.new("Frame", MainGui)
+    SideBar.Size = UDim2.new(0, 60, 0, 200); SideBar.Position = UDim2.new(1, -70, 0.5, -100); SideBar.BackgroundTransparency = 1
+    local SideList = Instance.new("UIListLayout", SideBar); SideList.Padding = UDim.new(0, 10)
+    
+    local function CreateSideBtn(txt, pwrKey)
+        local btn = Instance.new("TextButton", SideBar)
+        btn.Size = UDim2.new(1, 0, 0, 50); btn.Text = txt; btn.BackgroundColor3 = Color3.new(0, 0, 0); btn.TextColor3 = Color3.new(1, 1, 1); btn.Font = Enum.Font.GothamBold; Instance.new("UICorner", btn)
+        local bStroke = Instance.new("UIStroke", btn); bStroke.Color = Color3.new(1, 1, 1); bStroke.Thickness = 1
+        
+        btn.MouseButton1Click:Connect(function()
+            CH_CONFIG.Powers[pwrKey] = not CH_CONFIG.Powers[pwrKey]
+            ApplyTween(btn, 0.3, {TextColor3 = CH_CONFIG.Powers[pwrKey] and CH_CONFIG.Theme.MainColor or Color3.new(1, 1, 1)})
+            ApplyTween(bStroke, 0.3, {Color = CH_CONFIG.Powers[pwrKey] and CH_CONFIG.Theme.MainColor or Color3.new(1, 1, 1)})
+            CreateClickEffect(btn)
+        end)
     end
-
-    local P1 = Instance.new("ScrollingFrame", Pages); P1.Size = UDim2.new(1,0,1,0); P1.BackgroundTransparency = 1; Instance.new("UIListLayout", P1).Padding = UDim.new(0, 5)
-    AddESP(P1, "ESP Asesino", "ESP_M")
-    AddESP(P1, "ESP Sheriff", "ESP_S")
-    AddESP(P1, "ESP Inocente", "ESP_I")
+    
+    CreateSideBtn("NC", "Noclip")
+    CreateSideBtn("JP", "InfJump")
+    CreateSideBtn("AFK", "AntiAFK")
 end
 
--- [ LÓGICA DE MOTOR ]
+-- [ MOTOR DE RENDERIZADO (60 FPS) ]
 RunService.RenderStepped:Connect(function()
-    if not lp.Character then return end
-    
-    -- Noclip (F4 equivalente)
-    if CH_DATA.Toggles.Noclip then
-        for _, v in pairs(lp.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
+    -- Noclip
+    if CH_CONFIG.Powers.Noclip and LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
     end
     
-    -- ESP Logic
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= lp and p.Character then
-            local isM = p.Character:FindFirstChild("Knife") or p.Backpack:FindFirstChild("Knife")
-            local isS = p.Character:FindFirstChild("Gun") or p.Backpack:FindFirstChild("Gun")
-            local active = (isM and CH_DATA.Toggles.ESP_M) or (isS and CH_DATA.Toggles.ESP_S) or (not isM and not isS and CH_DATA.Toggles.ESP_I)
-            local hl = p.Character:FindFirstChild("TitanESP")
-            if active then
-                if not hl then hl = Instance.new("Highlight", p.Character); hl.Name = "TitanESP" end
-                hl.FillColor = isM and CH_DATA.CurrentColors.Murderer or (isS and CH_DATA.CurrentColors.Sheriff or CH_DATA.CurrentColors.Innocent)
-            elseif hl then hl:Destroy() end
+    -- Motor de ESP
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local isM = player.Character:FindFirstChild("Knife") or player.Backpack:FindFirstChild("Knife")
+            local isS = player.Character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun")
+            
+            local config = nil
+            if isM then config = CH_CONFIG.ESP.Murderer
+            elseif isS then config = CH_CONFIG.ESP.Sheriff
+            else config = CH_CONFIG.ESP.Innocent end
+            
+            local highlight = player.Character:FindFirstChild("CH_ULTIMATE_ESP")
+            if config.Enabled then
+                if not highlight then
+                    highlight = Instance.new("Highlight", player.Character)
+                    highlight.Name = "CH_ULTIMATE_ESP"
+                end
+                highlight.FillColor = config.Color
+                highlight.OutlineColor = Color3.new(1, 1, 1)
+                highlight.FillTransparency = 0.5
+            else
+                if highlight then highlight:Destroy() end
+            end
         end
     end
 end)
 
+-- Salto Infinito
 UserInputService.JumpRequest:Connect(function()
-    if CH_DATA.Toggles.InfJump and lp.Character:FindFirstChildOfClass("Humanoid") then
-        lp.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    if CH_CONFIG.Powers.InfJump and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
     end
 end)
 
-RunIntro()
+-- Anti AFK
+LocalPlayer.Idled:Connect(function()
+    if CH_CONFIG.Powers.AntiAFK then
+        game:GetService("VirtualUser"):CaptureController()
+        game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+    end
+end)
+
+-- [ INICIO ]
+StartIntro()
