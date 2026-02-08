@@ -1,4 +1,5 @@
--- CHRISSHUB MM2 V1 - SCRIPT DEFINITIVO MÓVIL (todo junto, sin teclas rápidas)
+-- CHRISSHUB MM2 V1 - SCRIPT DEFINITIVO MÓVIL (todo junto)
+-- Intro hacker + Key System + Menú MAIN/ESP/COMBAT + Círculo CH-HUB
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -10,13 +11,13 @@ local camera = Workspace.CurrentCamera
 
 local player = Players.LocalPlayer
 
--- KEYS (las 10 que me diste)
+-- KEYS
 local validKeys = {
     "123456", "654321", "112233", "445566", "121212",
     "343434", "135790", "246801", "987654", "019283"
 }
 
--- Estados
+-- ESTADOS
 local toggles = {
     Noclip = false,
     InfJump = false,
@@ -40,9 +41,7 @@ local circleButton = nil
 local menuFrame = nil
 local keyFrame = nil
 
--- =============================================
--- INTRO HACKER (sin fondo)
--- =============================================
+-- INTRO HACKER
 local function showIntro()
     local introGui = Instance.new("ScreenGui")
     introGui.Name = "IntroGui"
@@ -92,9 +91,7 @@ local function showIntro()
     end)
 end
 
--- =============================================
 -- KEY SYSTEM
--- =============================================
 local function showKeySystem()
     keyFrame = Instance.new("Frame")
     keyFrame.Size = UDim2.new(0, 280, 0, 160)
@@ -157,9 +154,7 @@ local function showKeySystem()
     end)
 end
 
--- =============================================
 -- MENÚ PRINCIPAL
--- =============================================
 local function showMainMenu()
     menuFrame = Instance.new("Frame")
     menuFrame.Size = UDim2.new(0, 300, 0, 380)
@@ -229,14 +224,12 @@ local function showMainMenu()
             toggles[name] = not toggles[name]
             btn.Text = name .. ": " .. (toggles[name] and "ON" or "OFF")
             btn.BackgroundColor3 = toggles[name] and Color3.fromRGB(0, 120, 60) or Color3.fromRGB(25, 25, 25)
-            -- Animación
             TweenService:Create(btn, TweenInfo.new(0.15), {Size = UDim2.new(1, 0, 0, 50)}):Play()
             task.wait(0.15)
             TweenService:Create(btn, TweenInfo.new(0.15), {Size = UDim2.new(1, 0, 0, 45)}):Play()
         end)
     end
 
-    -- MAIN
     createToggle("Noclip", 30)
     createToggle("InfJump", 85)
     createToggle("AntiAFK", 140)
@@ -252,7 +245,6 @@ local function showMainMenu()
     tiktokLabel.TextWrapped = true
     tiktokLabel.Parent = scroll
 
-    -- ESP (con colores)
     local espTitle = Instance.new("TextLabel", scroll)
     espTitle.Size = UDim2.new(1, 0, 0, 30)
     espTitle.Position = UDim2.new(0, 0, 0, 280)
@@ -264,7 +256,6 @@ local function showMainMenu()
 
     createToggle("ESP", 310)
 
-    -- COMBAT
     local combatTitle = Instance.new("TextLabel", scroll)
     combatTitle.Size = UDim2.new(1, 0, 0, 30)
     combatTitle.Position = UDim2.new(0, 0, 0, 370)
@@ -279,11 +270,8 @@ local function showMainMenu()
     createToggle("KillAura", 510)
     createToggle("TPSheriff", 565)
 
-    -- =============================================
     -- FUNCIONES
-    -- =============================================
 
-    -- ESP
     local function addESP(plr)
         if plr == player then return end
         
@@ -304,7 +292,6 @@ local function showMainMenu()
     for _, plr in Players:GetPlayers() do addESP(plr) end
     Players.PlayerAdded:Connect(addESP)
 
-    -- Loop principal
     RunService.Heartbeat:Connect(function()
         local char = player.Character
         if not char then return end
@@ -312,13 +299,11 @@ local function showMainMenu()
         if not root then return end
         local hum = char:FindFirstChild("Humanoid")
 
-        -- Anti-AFK
         if toggles.AntiAFK and hum and tick() - lastAFKJump > 30 then
             hum:ChangeState(Enum.HumanoidStateType.Jumping)
             lastAFKJump = tick()
         end
 
-        -- ESP
         if toggles.ESP then
             for plr, hl in pairs(espHighlights) do
                 if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
@@ -334,7 +319,6 @@ local function showMainMenu()
             for _, hl in pairs(espHighlights) do hl.Enabled = false end
         end
 
-        -- Kill Aura 40 studs
         if toggles.KillAura and char:FindFirstChild("Knife") then
             for _, plr in Players:GetPlayers() do
                 if plr \~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
@@ -346,7 +330,6 @@ local function showMainMenu()
             end
         end
 
-        -- Aimbot Legit
         if toggles.AimbotLegit then
             local closest, dist = nil, math.huge
             local camPos = camera.CFrame.Position
@@ -375,7 +358,6 @@ local function showMainMenu()
             end
         end
 
-        -- Aimbot Murder
         if toggles.AimbotMurder then
             local closest, dist = nil, math.huge
             local camPos = camera.CFrame.Position
@@ -400,7 +382,6 @@ local function showMainMenu()
             end
         end
 
-        -- TP Sheriff (solo si eres asesino)
         if toggles.TPSheriff and char:FindFirstChild("Knife") then
             for _, plr in Players:GetPlayers() do
                 if plr.Character and plr.Character:FindFirstChild("Gun") then
@@ -411,7 +392,6 @@ local function showMainMenu()
         end
     end)
 
-    -- Noclip
     RunService.Stepped:Connect(function()
         if toggles.Noclip and player.Character then
             for _, part in ipairs(player.Character:GetDescendants()) do
@@ -420,14 +400,13 @@ local function showMainMenu()
         end
     end)
 
-    -- Inf Jump
     UserInputService.JumpRequest:Connect(function()
         if toggles.InfJump and player.Character then
             player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end)
 
-    print("[CHRISSHUB MM2 V1] Cargado completo.")
+    print("[CHRISSHUB MM2 V1] Cargado.")
 end
 
 -- Iniciar
