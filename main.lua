@@ -1,7 +1,7 @@
 --[[
     CHRISSHUB V1 - OFFICIAL RELEASE
     -------------------------------------------
-    - Intro: Green Neon "CHRISSHUB V1"
+    - Intro: Green Neon Glitch "CHRISSHUB V1"
     - UI: Xhub Style (Main, ESP, Combat)
     - Logic: Silent Aim (30x30x30), Auto-Role ESP, Kill Aura
     - TikTok: @sasware32
@@ -70,17 +70,36 @@ local function MakeDraggable(frame)
     end)
 end
 
--- [ INTRO ]
+-- [ INTRO MEJORADA ]
 local function RunIntro()
     local Intro = Instance.new("TextLabel", ScreenGui)
     Intro.Size = UDim2.new(1, 0, 1, 0); Intro.BackgroundTransparency = 1
     Intro.Text = "CHRISSHUB V1"; Intro.TextColor3 = Color3.fromRGB(0, 255, 100)
     Intro.Font = "GothamBlack"; Intro.TextSize = 80; Intro.TextTransparency = 1
     
+    local Stroke = Instance.new("UIStroke", Intro)
+    Stroke.Color = Color3.fromRGB(0, 255, 0); Stroke.Thickness = 5; Stroke.Transparency = 1
+
+    -- Animación de Entrada
     TweenService:Create(Intro, TweenInfo.new(1), {TextTransparency = 0}):Play()
-    task.wait(2.5)
-    TweenService:Create(Intro, TweenInfo.new(1), {TextTransparency = 1, TextSize = 120}):Play()
-    task.wait(1); Intro:Destroy(); ShowKeySystem()
+    TweenService:Create(Stroke, TweenInfo.new(1), {Transparency = 0}):Play()
+    task.wait(1.5)
+
+    -- Glitch de colores verdes
+    local greens = {Color3.fromRGB(0, 255, 0), Color3.fromRGB(50, 255, 50), Color3.fromRGB(0, 150, 0), Color3.fromRGB(150, 255, 150)}
+    for i = 1, 12 do
+        Intro.TextColor3 = greens[math.random(1, #greens)]
+        Stroke.Color = greens[math.random(1, #greens)]
+        Intro.Position = UDim2.new(0, math.random(-8, 8), 0, math.random(-8, 8))
+        task.wait(0.04)
+    end
+
+    -- Salida de Destrucción
+    Intro.Position = UDim2.new(0, 0, 0, 0)
+    TweenService:Create(Intro, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {TextSize = 250, TextTransparency = 1, Rotation = math.random(-30, 30)}):Play()
+    TweenService:Create(Stroke, TweenInfo.new(0.5), {Transparency = 1, Thickness = 30}):Play()
+    
+    task.wait(0.6); Intro:Destroy(); ShowKeySystem()
 end
 
 -- [ SISTEMA DE LLAVES ]
@@ -102,7 +121,6 @@ function ShowKeySystem()
     Verify.MouseButton1Click:Connect(function()
         local found = false
         for _, k in pairs(CH_DATA.Keys) do if Input.Text == k then found = true end end
-        
         if found then
             Verify.Text = "Verifying key..."; task.wait(5)
             KeyFrame:Destroy(); ShowMain()
@@ -120,36 +138,29 @@ function ShowMain()
     local Stroke = Instance.new("UIStroke", Main); Stroke.Color = Color3.fromRGB(0, 255, 100); Stroke.Thickness = 2
     MakeDraggable(Main)
 
-    -- Sidebar
     local Sidebar = Instance.new("Frame", Main)
     Sidebar.Size = UDim2.new(0, 120, 1, 0); Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Instance.new("UICorner", Sidebar)
     
     local TabContainer = Instance.new("Frame", Sidebar)
     TabContainer.Size = UDim2.new(1, 0, 1, -40); TabContainer.Position = UDim2.new(0, 0, 0, 10); TabContainer.BackgroundTransparency = 1
-    local L = Instance.new("UIListLayout", TabContainer); L.Padding = UDim.new(0, 5); L.HorizontalAlignment = "Center"
+    Instance.new("UIListLayout", TabContainer).Padding = UDim.new(0, 5)
 
     local PageContainer = Instance.new("Frame", Main)
     PageContainer.Size = UDim2.new(1, -135, 1, -40); PageContainer.Position = UDim2.new(0, 125, 0, 10); PageContainer.BackgroundTransparency = 1
 
     local Pages = {}
     local function CreateTab(name)
-        local B = Instance.new("TextButton", TabContainer); B.Size = UDim2.new(0.9, 0, 0, 35); B.Text = name; B.BackgroundColor3 = Color3.fromRGB(25, 25, 25); B.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", B)
+        local B = Instance.new("TextButton", TabContainer); B.Size = UDim2.new(1, 0, 0, 35); B.Text = name; B.BackgroundColor3 = Color3.fromRGB(25, 25, 25); B.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", B)
         local P = Instance.new("ScrollingFrame", PageContainer); P.Size = UDim2.new(1, 0, 1, 0); P.BackgroundTransparency = 1; P.Visible = false; P.ScrollBarThickness = 2
         Instance.new("UIListLayout", P).Padding = UDim.new(0, 8)
-        
-        B.MouseButton1Click:Connect(function()
-            for _, pg in pairs(Pages) do pg.Visible = false end
-            P.Visible = true
-        end)
-        Pages[name] = P
-        return P
+        B.MouseButton1Click:Connect(function() for _, pg in pairs(Pages) do pg.Visible = false end; P.Visible = true end)
+        Pages[name] = P; return P
     end
 
     local MainP = CreateTab("MAIN")
     local EspP = CreateTab("ESP")
     local CombatP = CreateTab("COMBAT")
 
-    -- COMPONENTES
     local function AddToggle(parent, text, var)
         local F = Instance.new("Frame", parent); F.Size = UDim2.new(1, 0, 0, 40); F.BackgroundColor3 = Color3.fromRGB(20, 20, 20); Instance.new("UICorner", F)
         local L = Instance.new("TextLabel", F); L.Size = UDim2.new(0.7, 0, 1, 0); L.Position = UDim2.new(0, 10, 0, 0); L.Text = text; L.TextColor3 = Color3.new(1,1,1); L.BackgroundTransparency = 1; L.TextXAlignment = "Left"
@@ -162,8 +173,8 @@ function ShowMain()
 
     local function AddColorBar(parent, text, role)
         local F = Instance.new("Frame", parent); F.Size = UDim2.new(1, 0, 0, 60); F.BackgroundColor3 = Color3.fromRGB(20, 20, 20); Instance.new("UICorner", F)
-        local L = Instance.new("TextLabel", F); L.Size = UDim2.new(1, 0, 0, 25); L.Text = text; L.TextColor3 = Color3.new(0.7,0.7,0.7); L.BackgroundTransparency = 1; L.Font = "Gotham"
-        local B = Instance.new("TextButton", F); B.Size = UDim2.new(0.9, 0, 0, 25); B.Position = UDim2.new(0.05, 0, 0.5, 0); B.BackgroundColor3 = CH_DATA.Colors[role]; B.Text = "Siguiente Color"; B.TextColor3 = Color3.new(0,0,0); Instance.new("UICorner", B)
+        local L = Instance.new("TextLabel", F); L.Size = UDim2.new(1, 0, 0, 25); L.Text = text; L.TextColor3 = Color3.new(0.7,0.7,0.7); L.BackgroundTransparency = 1
+        local B = Instance.new("TextButton", F); B.Size = UDim2.new(0.9, 0, 0, 25); B.Position = UDim2.new(0.05, 0, 0.5, 0); B.BackgroundColor3 = CH_DATA.Colors[role]; B.Text = "Color Actual"; B.TextColor3 = Color3.new(0,0,0); Instance.new("UICorner", B)
         local index = 1
         B.MouseButton1Click:Connect(function()
             index = (index % #CH_DATA.ColorOptions) + 1
@@ -173,16 +184,15 @@ function ShowMain()
         end)
     end
 
-    -- CONTENIDO
     AddToggle(MainP, "Noclip", "Noclip")
     AddToggle(MainP, "Infinity Jump", "InfJump")
     AddToggle(MainP, "Anti AFK", "AntiAFK")
-    local TikTok = Instance.new("TextLabel", MainP); TikTok.Size = UDim2.new(1, 0, 0, 30); TikTok.Text = "SÍGUEME EN TIKTOK @sasware32"; TikTok.TextColor3 = Color3.new(0.5,0.5,0.5); TikTok.BackgroundTransparency = 1; TikTok.TextSize = 12
+    local TikTok = Instance.new("TextLabel", MainP); TikTok.Size = UDim2.new(1, 0, 0, 30); TikTok.Text = "SÍGUEME EN TIKTOK @sasware32"; TikTok.TextColor3 = Color3.new(0.5,0.5,0.5); TikTok.BackgroundTransparency = 1
 
     AddToggle(EspP, "ESP Murderer", "ESP_M")
-    AddColorBar(EspP, "Color ESP Asesino", "Murderer")
+    AddColorBar(EspP, "Color Asesino", "Murderer")
     AddToggle(EspP, "ESP Sheriff", "ESP_S")
-    AddColorBar(EspP, "Color ESP Sheriff", "Sheriff")
+    AddColorBar(EspP, "Color Sheriff", "Sheriff")
     AddToggle(EspP, "ESP Innocent", "ESP_I")
 
     AddToggle(CombatP, "Aimbot Legit", "AimbotLegit")
@@ -192,27 +202,14 @@ function ShowMain()
     
     local TPBtn = Instance.new("TextButton", CombatP); TPBtn.Size = UDim2.new(1, 0, 0, 40); TPBtn.Text = "TP SHERIFF"; TPBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 255); TPBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", TPBtn)
     TPBtn.MouseButton1Click:Connect(function()
-        for _, p in pairs(Players:GetPlayers()) do
-            if p.Character and (p.Backpack:FindFirstChild("Gun") or p.Character:FindFirstChild("Gun")) then
-                lp.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
-            end
-        end
+        for _, p in pairs(Players:GetPlayers()) do if p.Character and (p.Backpack:FindFirstChild("Gun") or p.Character:FindFirstChild("Gun")) then lp.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2) end end
     end)
 
-    -- CERRAR Y BOTÓN FLOTANTE
-    local CloseBtn = Instance.new("TextButton", Main)
-    CloseBtn.Size = UDim2.new(0, 35, 0, 35); CloseBtn.Position = UDim2.new(1, -40, 0, 5)
-    CloseBtn.Text = "X"; CloseBtn.TextColor3 = Color3.new(1,0,0); CloseBtn.TextSize = 25; CloseBtn.BackgroundTransparency = 1
-    
-    local Floating = Instance.new("TextButton", ScreenGui)
-    Floating.Size = UDim2.new(0, 70, 0, 70); Floating.Position = UDim2.new(0.1, 0, 0.1, 0)
-    Floating.BackgroundColor3 = Color3.new(0,0,0); Floating.Text = "CH-HUB"; Floating.TextColor3 = Color3.fromRGB(0,255,100); Floating.Visible = false
-    Instance.new("UICorner", Floating).CornerRadius = UDim.new(1,0); Instance.new("UIStroke", Floating).Color = Color3.fromRGB(0,255,100)
-    MakeDraggable(Floating)
+    local CloseBtn = Instance.new("TextButton", Main); CloseBtn.Size = UDim2.new(0, 35, 0, 35); CloseBtn.Position = UDim2.new(1, -40, 0, 5); CloseBtn.Text = "X"; CloseBtn.TextColor3 = Color3.new(1,0,0); CloseBtn.BackgroundTransparency = 1
+    local Floating = Instance.new("TextButton", ScreenGui); Floating.Size = UDim2.new(0, 70, 0, 70); Floating.Position = UDim2.new(0.1, 0, 0.1, 0); Floating.BackgroundColor3 = Color3.new(0,0,0); Floating.Text = "CH-HUB"; Floating.TextColor3 = Color3.fromRGB(0,255,100); Floating.Visible = false; Instance.new("UICorner", Floating).CornerRadius = UDim.new(1,0); Instance.new("UIStroke", Floating).Color = Color3.fromRGB(0,255,100); MakeDraggable(Floating)
 
     CloseBtn.MouseButton1Click:Connect(function() Main.Visible = false; Floating.Visible = true end)
     Floating.MouseButton1Click:Connect(function() Main.Visible = true; Floating.Visible = false end)
-
     Pages["MAIN"].Visible = true
 end
 
@@ -225,83 +222,29 @@ end
 
 RunService.RenderStepped:Connect(function()
     if not lp.Character then return end
+    if CH_DATA.Toggles.Noclip then for _, v in pairs(lp.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end end
 
-    -- Noclip
-    if CH_DATA.Toggles.Noclip then
-        for _, v in pairs(lp.Character:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
-    end
-
-    -- ESP & Silent Aim Hitbox
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local role = GetRole(p)
-            local char = p.Character
-            
-            -- ESP
-            local hl = char:FindFirstChild("ChrisESP")
+            local role = GetRole(p); local char = p.Character; local hl = char:FindFirstChild("ChrisESP")
             local active = (role == "Murderer" and CH_DATA.Toggles.ESP_M) or (role == "Sheriff" and CH_DATA.Toggles.ESP_S) or (role == "Innocent" and CH_DATA.Toggles.ESP_I)
-            
-            if active then
-                if not hl then hl = Instance.new("Highlight", char); hl.Name = "ChrisESP" end
-                hl.FillColor = CH_DATA.Colors[role]
-            elseif hl then hl:Destroy() end
-
-            -- Silent Aim Hitbox (30x30x30)
-            if CH_DATA.Toggles.SilentAim then
-                char.HumanoidRootPart.Size = Vector3.new(30, 30, 30)
-                char.HumanoidRootPart.Transparency = 0.8
-            else
-                char.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
-                char.HumanoidRootPart.Transparency = 1
-            end
+            if active then if not hl then hl = Instance.new("Highlight", char); hl.Name = "ChrisESP" end; hl.FillColor = CH_DATA.Colors[role] else if hl then hl:Destroy() end end
+            if CH_DATA.Toggles.SilentAim then char.HumanoidRootPart.Size = Vector3.new(30, 30, 30); char.HumanoidRootPart.Transparency = 0.8 else char.HumanoidRootPart.Size = Vector3.new(2, 2, 1); char.HumanoidRootPart.Transparency = 1 end
         end
     end
 
-    -- Kill Aura
     if CH_DATA.Toggles.KillAura and GetRole(lp) == "Murderer" and lp.Character:FindFirstChild("Knife") then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = (lp.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
-                if dist < 40 then
-                    firetouchinterest(p.Character.HumanoidRootPart, lp.Character.Knife.Handle, 0)
-                    firetouchinterest(p.Character.HumanoidRootPart, lp.Character.Knife.Handle, 1)
-                end
-            end
-        end
+        for _, p in pairs(Players:GetPlayers()) do if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then if (lp.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude < 40 then firetouchinterest(p.Character.HumanoidRootPart, lp.Character.Knife.Handle, 0); firetouchinterest(p.Character.HumanoidRootPart, lp.Character.Knife.Handle, 1) end end end
     end
 
-    -- Aimbots
     local aimTarget = nil
     if CH_DATA.Toggles.AimbotLegit or CH_DATA.Toggles.AimbotMurder then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= lp and p.Character and p.Character:FindFirstChild("Head") then
-                local role = GetRole(p)
-                if CH_DATA.Toggles.AimbotMurder and role ~= "Murderer" then continue end
-                
-                local pos, vis = camera:WorldToViewportPoint(p.Character.Head.Position)
-                if vis then
-                    if CH_DATA.Toggles.AimbotLegit then
-                        local ray = Ray.new(camera.CFrame.Position, (p.Character.Head.Position - camera.CFrame.Position).unit * 500)
-                        local hit = workspace:FindPartOnRayWithIgnoreList(ray, {lp.Character})
-                        if hit and hit:IsDescendantOf(p.Character) then aimTarget = p.Character.Head end
-                    else
-                        aimTarget = p.Character.Head
-                    end
-                end
-            end
-        end
+        for _, p in pairs(Players:GetPlayers()) do if p ~= lp and p.Character and p.Character:FindFirstChild("Head") then local role = GetRole(p); if CH_DATA.Toggles.AimbotMurder and role ~= "Murderer" then continue end; local pos, vis = camera:WorldToViewportPoint(p.Character.Head.Position); if vis then if CH_DATA.Toggles.AimbotLegit then local ray = Ray.new(camera.CFrame.Position, (p.Character.Head.Position - camera.CFrame.Position).unit * 500); local hit = workspace:FindPartOnRayWithIgnoreList(ray, {lp.Character}); if hit and hit:IsDescendantOf(p.Character) then aimTarget = p.Character.Head end else aimTarget = p.Character.Head end end end end
     end
     if aimTarget then camera.CFrame = CFrame.new(camera.CFrame.Position, aimTarget.Position) end
 end)
 
--- Inf Jump
-UserInputService.JumpRequest:Connect(function()
-    if CH_DATA.Toggles.InfJump and lp.Character:FindFirstChildOfClass("Humanoid") then
-        lp.Character:FindFirstChildOfClass("Humanoid"):ChangeState(3)
-    end
-end)
-
--- Anti AFK
+UserInputService.JumpRequest:Connect(function() if CH_DATA.Toggles.InfJump and lp.Character:FindFirstChildOfClass("Humanoid") then lp.Character:FindFirstChildOfClass("Humanoid"):ChangeState(3) end end)
 lp.Idled:Connect(function() if CH_DATA.Toggles.AntiAFK then game:GetService("VirtualUser"):ClickButton2(Vector2.new()) end end)
 
 RunIntro()
