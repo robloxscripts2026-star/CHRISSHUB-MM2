@@ -1,9 +1,10 @@
 --[[
-    CHRISSHUB V2 - ELITE FIXED
+    CHRISSHUB V2 - ULTIMATE CLEAN
     -------------------------------------------
-    - FIX: FOV mejorados CHRISSHUB X SASWARE32
-    - FIX: Tracers optimizados
-    - FEATURES: Silent Aim, AutoShot, Predicción, 20 Colores
+    - FIXED: Error 'FindFirstChild' en Linea 68
+    - FIXED: Limpieza total de errores de CoinContainer
+    - FIXED: FOV Transparente (Solo borde)
+    - FEATURES: Silent Aim Elite, AutoShot, 20 Colors
     -------------------------------------------
 ]]
 
@@ -11,12 +12,11 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
-local TweenService = game:GetService("TweenService")
 
 local lp = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
--- [ DATA ]
+-- [ DATA & CONFIG ]
 local CH_V2 = {
     Keys = {"482957", "859326", "295714", "963085", "159372", "628491", "307589", "741963", "518230", "036148"},
     Settings = {
@@ -39,11 +39,14 @@ local CH_V2 = {
     }
 }
 
--- [ FOV CIRCLE FIX ]
+-- [ UI ELEMENTS ]
+if CoreGui:FindFirstChild("ChrisHubV2") then CoreGui.ChrisHubV2:Destroy() end
+local ScreenGui = Instance.new("ScreenGui", CoreGui); ScreenGui.Name = "ChrisHubV2"
+
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Thickness = 2
 FOVCircle.Color = Color3.fromRGB(0, 255, 255)
-FOVCircle.Filled = false -- AHORA ES SOLO EL BORDE
+FOVCircle.Filled = false
 FOVCircle.Transparency = 1
 FOVCircle.Visible = false
 
@@ -65,25 +68,29 @@ local function MakeDraggable(frame)
 end
 
 function ShowKeySystem()
-    if ScreenGui:FindFirstChild("Main") then return end
+    -- Blindaje contra error de nil (Linea 68 Fix)
+    if not ScreenGui then return end
+    
     local KeyFrame = Instance.new("Frame", ScreenGui); KeyFrame.Size = UDim2.new(0, 300, 0, 160); KeyFrame.Position = UDim2.new(0.5, -150, 0.5, -80); KeyFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 20); Instance.new("UICorner", KeyFrame); local S = Instance.new("UIStroke", KeyFrame); S.Color = Color3.fromRGB(0, 200, 255)
-    local Input = Instance.new("TextBox", KeyFrame); Input.Size = UDim2.new(0.8, 0, 0, 35); Input.Position = UDim2.new(0.1, 0, 0.3, 0); Input.PlaceholderText = "Key..."; Input.BackgroundColor3 = Color3.fromRGB(20, 20, 35); Input.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", Input)
-    local Verify = Instance.new("TextButton", KeyFrame); Verify.Size = UDim2.new(0.8, 0, 0, 35); Verify.Position = UDim2.new(0.1, 0, 0.65, 0); Verify.Text = "LOG IN"; Verify.BackgroundColor3 = Color3.fromRGB(0, 150, 255); Verify.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", Verify)
+    local Input = Instance.new("TextBox", KeyFrame); Input.Size = UDim2.new(0.8, 0, 0, 35); Input.Position = UDim2.new(0.1, 0, 0.3, 0); Input.PlaceholderText = "Escribe la Key..."; Input.BackgroundColor3 = Color3.fromRGB(20, 20, 35); Input.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", Input)
+    local Verify = Instance.new("TextButton", KeyFrame); Verify.Size = UDim2.new(0.8, 0, 0, 35); Verify.Position = UDim2.new(0.1, 0, 0.65, 0); Verify.Text = "ACCEDER"; Verify.BackgroundColor3 = Color3.fromRGB(0, 150, 255); Verify.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", Verify)
+    
     Verify.MouseButton1Click:Connect(function()
-        for _, k in pairs(CH_V2.Keys) do if Input.Text == k then KeyFrame:Destroy(); ShowMain() return end end
-        Verify.Text = "INVALID"; task.wait(0.5); Verify.Text = "LOG IN"
+        local match = false
+        for _, k in pairs(CH_V2.Keys) do if Input.Text == k then match = true break end end
+        if match then KeyFrame:Destroy(); ShowMain() else Verify.Text = "KEY INCORRECTA"; task.wait(0.5); Verify.Text = "ACCEDER" end
     end)
 end
 
 function ShowMain()
-    local Main = Instance.new("Frame", ScreenGui); Main.Name = "Main"; Main.Size = UDim2.new(0, 420, 0, 340); Main.Position = UDim2.new(0.5, -210, 0.5, -170); Main.BackgroundColor3 = Color3.fromRGB(5, 7, 12); Instance.new("UICorner", Main); local S = Instance.new("UIStroke", Main); S.Color = Color3.fromRGB(0, 150, 255); MakeDraggable(Main)
+    local Main = Instance.new("Frame", ScreenGui); Main.Name = "MainHub"; Main.Size = UDim2.new(0, 420, 0, 340); Main.Position = UDim2.new(0.5, -210, 0.5, -170); Main.BackgroundColor3 = Color3.fromRGB(5, 7, 12); Instance.new("UICorner", Main); local S = Instance.new("UIStroke", Main); S.Color = Color3.fromRGB(0, 150, 255); MakeDraggable(Main)
     
     local Sidebar = Instance.new("Frame", Main); Sidebar.Size = UDim2.new(0, 110, 1, -20); Sidebar.Position = UDim2.new(0, 5, 0, 10); Sidebar.BackgroundTransparency = 1; Instance.new("UIListLayout", Sidebar).Padding = UDim.new(0, 5)
     local PageContainer = Instance.new("Frame", Main); PageContainer.Size = UDim2.new(1, -125, 1, -20); PageContainer.Position = UDim2.new(0, 120, 0, 10); PageContainer.BackgroundTransparency = 1
 
     local Pages = {}
     local function CreateTab(name)
-        local B = Instance.new("TextButton", Sidebar); B.Size = UDim2.new(1, 0, 0, 35); B.Text = name; B.BackgroundColor3 = Color3.fromRGB(20, 25, 40); B.TextColor3 = Color3.new(0.7,0.7,0.7); Instance.new("UICorner", B)
+        local B = Instance.new("TextButton", Sidebar); B.Size = UDim2.new(1, 0, 0, 35); B.Text = name; B.BackgroundColor3 = Color3.fromRGB(20, 25, 40); B.TextColor3 = Color3.new(0.7,0.7,0.7); B.TextSize = 14; Instance.new("UICorner", B)
         local P = Instance.new("ScrollingFrame", PageContainer); P.Size = UDim2.new(1, 0, 1, 0); P.BackgroundTransparency = 1; P.Visible = false; P.ScrollBarThickness = 0; Instance.new("UIListLayout", P).Padding = UDim.new(0, 6)
         B.MouseButton1Click:Connect(function()
             for _, pg in pairs(Pages) do pg.Visible = false end; P.Visible = true
@@ -93,7 +100,7 @@ function ShowMain()
         Pages[name] = P; return P
     end
 
-    local MainP = CreateTab("PRINCIPAL"); local VisualP = CreateTab("VISUAL"); local CombatP = CreateTab("COMBATE")
+    local MainP = CreateTab("GENERAL"); local VisualP = CreateTab("VISUAL"); local CombatP = CreateTab("COMBATE")
 
     local function AddToggle(parent, text, var)
         local B = Instance.new("TextButton", parent); B.Size = UDim2.new(1, -10, 0, 35); B.Text = text; B.BackgroundColor3 = Color3.fromRGB(20, 25, 35); B.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", B)
@@ -101,7 +108,6 @@ function ShowMain()
         B.MouseButton1Click:Connect(function()
             CH_V2.Settings[var] = not CH_V2.Settings[var]
             Ind.BackgroundColor3 = CH_V2.Settings[var] and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(255, 50, 50)
-            B.Size = UDim2.new(1, 0, 0, 35); task.wait(0.05); B.Size = UDim2.new(1, -10, 0, 35)
         end)
     end
 
@@ -115,31 +121,31 @@ function ShowMain()
         end)
     end
 
-    AddToggle(MainP, "NOCLIP", "NOCLIP"); AddToggle(MainP, "INFINITYJUMP", "INFINITYJUMP")
+    AddToggle(MainP, "NOCLIP", "NOCLIP"); AddToggle(MainP, "INF. JUMP", "INFINITYJUMP")
     AddToggle(VisualP, "ESP INOCENTE", "ESP_INOCENTE"); AddColorPicker(VisualP, "Innocent")
     AddToggle(VisualP, "ESP ASESINO", "ESP_ASESINO"); AddColorPicker(VisualP, "Murderer")
     AddToggle(VisualP, "ESP SHERIFF", "ESP_SHERIFF"); AddColorPicker(VisualP, "Sheriff")
-    AddToggle(VisualP, "TRACES", "TRACES")
-    AddToggle(CombatP, "SILENTAIM", "SILENTAIM"); AddToggle(CombatP, "AUTOSHOT (GUN)", "AUTOSHOT")
+    AddToggle(VisualP, "TRACERS", "TRACES")
+    AddToggle(CombatP, "SILENTAIM", "SILENTAIM"); AddToggle(CombatP, "AUTOSHOT", "AUTOSHOT")
     
     local FOVIn = Instance.new("TextBox", CombatP); FOVIn.Size = UDim2.new(1,-10,0,35); FOVIn.Text = "FOV: 100"; FOVIn.BackgroundColor3 = Color3.fromRGB(25,30,45); FOVIn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", FOVIn)
     FOVIn.FocusLost:Connect(function() local v = tonumber(FOVIn.Text:match("%d+")); if v then CH_V2.Settings.FOV = v end; FOVIn.Text = "FOV: "..CH_V2.Settings.FOV end)
 
     local Close = Instance.new("TextButton", Main); Close.Size = UDim2.new(0,30,0,30); Close.Position = UDim2.new(1,-35,0,5); Close.Text = "X"; Close.TextColor3 = Color3.new(1,0,0); Close.BackgroundTransparency = 1
-    local Floating = Instance.new("TextButton", ScreenGui); Floating.Name = "CHHUB"; Floating.Size = UDim2.new(0,50,0,50); Floating.Position = UDim2.new(0,10,0.5,0); Floating.Text = "CH-HUB"; Floating.BackgroundColor3 = Color3.fromRGB(0,150,255); Floating.Visible = false; Instance.new("UICorner", Floating).CornerRadius = UDim.new(1,0); MakeDraggable(Floating)
+    local Floating = Instance.new("TextButton", ScreenGui); Floating.Name = "CHHUB_BTN"; Floating.Size = UDim2.new(0,55,0,55); Floating.Position = UDim2.new(0,10,0.5,0); Floating.Text = "CH-HUB"; Floating.BackgroundColor3 = Color3.fromRGB(0,150,255); Floating.Visible = false; Instance.new("UICorner", Floating).CornerRadius = UDim.new(1,0); MakeDraggable(Floating)
     
     Close.MouseButton1Click:Connect(function() Main.Visible = false; Floating.Visible = true end)
     Floating.MouseButton1Click:Connect(function() Main.Visible = true; Floating.Visible = false end)
-    Pages["PRINCIPAL"].Visible = true
+    Pages["GENERAL"].Visible = true
 end
 
--- [ ENGINE ]
+-- [ MAIN ENGINE ]
 local Tracers = {}
 
 RunService.RenderStepped:Connect(function()
     if not lp.Character or not lp.Character:FindFirstChild("HumanoidRootPart") then return end
 
-    -- FOV Update (FIXED: Solo círculo, no tapa pantalla)
+    -- FOV Update
     FOVCircle.Visible = CH_V2.Settings.SILENTAIM
     FOVCircle.Radius = CH_V2.Settings.FOV
     FOVCircle.Position = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
@@ -153,9 +159,10 @@ RunService.RenderStepped:Connect(function()
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
             local char = p.Character
+            local hrp = char.HumanoidRootPart
             local role = (char:FindFirstChild("Knife") or p.Backpack:FindFirstChild("Knife")) and "Murderer" or (char:FindFirstChild("Gun") or p.Backpack:FindFirstChild("Gun")) and "Sheriff" or "Innocent"
             
-            -- Visuals
+            -- Visuals (ESP & Tracers)
             local act = (role == "Murderer" and CH_V2.Settings.ESP_ASESINO) or (role == "Sheriff" and CH_V2.Settings.ESP_SHERIFF) or (role == "Innocent" and CH_V2.Settings.ESP_INOCENTE)
             local hl = char:FindFirstChild("ChrisV2")
             if act then
@@ -164,7 +171,7 @@ RunService.RenderStepped:Connect(function()
             elseif hl then hl:Destroy() end
 
             if CH_V2.Settings.TRACES and act then
-                local pos, vis = camera:WorldToViewportPoint(char.HumanoidRootPart.Position)
+                local pos, vis = camera:WorldToViewportPoint(hrp.Position)
                 local line = Tracers[p.Name] or Drawing.new("Line")
                 if vis then
                     line.Visible = true; line.From = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y); line.To = Vector2.new(pos.X, pos.Y); line.Color = CH_V2.Colors[role]; line.Thickness = 1.5
@@ -172,31 +179,33 @@ RunService.RenderStepped:Connect(function()
                 Tracers[p.Name] = line
             elseif Tracers[p.Name] then Tracers[p.Name].Visible = false end
 
-            -- Silent Aim & Hitbox
+            -- Silent Aim Logic
             if CH_V2.Settings.SILENTAIM then
-                char.HumanoidRootPart.Size = Vector3.new(30,30,30); char.HumanoidRootPart.Transparency = 0.8
-                local screenPos, onScreen = camera:WorldToViewportPoint(char.HumanoidRootPart.Position)
+                hrp.Size = Vector3.new(35,35,35); hrp.Transparency = 0.85
+                local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
                 if onScreen then
                     local m = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
                     local weight = (role == "Murderer") and 0.5 or 1
                     if (m * weight) < dist then dist = m * weight; target = p end
                 end
             else
-                char.HumanoidRootPart.Size = Vector3.new(2,2,1); char.HumanoidRootPart.Transparency = 1
+                hrp.Size = Vector3.new(2,2,1); hrp.Transparency = 1
             end
         end
     end
 
-    -- AutoShot Elite
+    -- AutoShot con Predicción (Sin errores de arma)
     if CH_V2.Settings.AUTOSHOT and target and target.Character then
         local gun = lp.Character:FindFirstChild("Gun") or lp.Backpack:FindFirstChild("Gun")
         if gun and lp.Character:FindFirstChild("Gun") then
             local shootPos = target.Character.HumanoidRootPart.Position + (target.Character.HumanoidRootPart.Velocity * CH_V2.Settings.PREDICTION)
             local remote = gun:FindFirstChild("SendMessage", true) or gun:FindFirstChild("Shoot", true)
-            if remote then remote:FireServer(shootPos) end
+            if remote then pcall(function() remote:FireServer(shootPos) end) end
         end
     end
 end)
 
-UserInputService.JumpRequest:Connect(function() if CH_V2.Settings.INFINITYJUMP then lp.Character.Humanoid:ChangeState(3) end end)
+UserInputService.JumpRequest:Connect(function() if CH_V2.Settings.INFINITYJUMP then pcall(function() lp.Character.Humanoid:ChangeState(3) end) end end)
+
+-- [ INICIO ]
 ShowKeySystem()
