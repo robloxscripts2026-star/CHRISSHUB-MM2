@@ -1,6 +1,3 @@
---CHRISSHUB V2- SCRIPT PARA MM2 FULL 
--- Intro verde neón + Key morado + Menú MAIN/ESP/COMBAT + FOV dorado + Kill Aura 40 + TP Sheriff solo vivo
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
