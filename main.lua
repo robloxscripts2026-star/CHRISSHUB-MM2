@@ -1,5 +1,5 @@
--- CHRISSHUB MM2 V2.2 - MÓVIL COMPLETO (MAIN/ESP/COMBAT + FOV + TRACES)
--- Menú futurista dividido en tabs | FOV visible ajustable | Traces que se borran | TP Sheriff
+-- CHRISSHUB V2 - SCRIPT COMPLETO MÓVIL (futurista azul neón, tabs separados)
+-- Intro verde neón + Key morado + Menú MAIN/ESP/COMBAT + FOV dorado + Kill Aura 40 + TP Sheriff solo vivo
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -11,8 +11,13 @@ local camera = Workspace.CurrentCamera
 
 local player = Players.LocalPlayer
 
--- KEYS
-local validKeys = {"123456", "654321", "112233", "445566", "121212", "343434", "135790", "246801", "987654", "019283"}
+-- KEYS (las nuevas que me diste)
+local validKeys = {
+    "CHKEY_8621973540", "CHKEY_3917528640", "CHKEY_7149265830",
+    "CHKEY_9361852740", "CHKEY_6297148350", "CHKEY_5813927640",
+    "CHKEY_2751839640", "CHKEY_4178392560", "CHKEY_1593728460",
+    "CHKEY_8326915740"
+}
 
 -- ESTADOS
 local toggles = {
@@ -26,93 +31,145 @@ local toggles = {
     TPSheriff = false
 }
 
+-- Colores por rol (5 opciones cada uno)
 local espColors = {
-    Murderer = Color3.fromRGB(255, 0, 0),
-    Sheriff = Color3.fromRGB(0, 100, 255),
-    Innocent = Color3.fromRGB(0, 255, 0)
+    Murderer = {
+        Color3.fromRGB(255, 0, 50),   -- Rojo Sangre Neón
+        Color3.fromRGB(150, 0, 0),    -- Carmesí Intenso
+        Color3.fromRGB(255, 0, 255),  -- Magenta Eléctrico
+        Color3.fromRGB(255, 60, 0),   -- Naranja Volcánico
+        Color3.fromRGB(200, 0, 100)   -- Rojo Rubí
+    },
+    Sheriff = {
+        Color3.fromRGB(0, 150, 255),  -- Azul Eléctrico
+        Color3.fromRGB(0, 255, 255),  -- Cian Glaciar
+        Color3.fromRGB(0, 50, 255),   -- Azul Cobalto
+        Color3.fromRGB(30, 144, 255), -- Azul Zafiro
+        Color3.fromRGB(100, 200, 255) -- Celeste Neón
+    },
+    Innocent = {
+        Color3.fromRGB(0, 255, 120),  -- Verde Esmeralda
+        Color3.fromRGB(255, 255, 0),  -- Amarillo Neón
+        Color3.fromRGB(255, 255, 255),-- Blanco Puro
+        Color3.fromRGB(180, 255, 0),  -- Lima Brillante
+        Color3.fromRGB(255, 215, 0)   -- Dorado Premium
+    }
 }
 
-local colorCycle = {
-    Color3.fromRGB(255,0,0), Color3.fromRGB(255,165,0), Color3.fromRGB(255,255,0),
-    Color3.fromRGB(0,255,0), Color3.fromRGB(0,0,255), Color3.fromRGB(128,0,128),
-    Color3.fromRGB(255,192,203), Color3.fromRGB(139,69,19), Color3.fromRGB(0,0,0),
-    Color3.fromRGB(255,255,255), Color3.fromRGB(128,128,128), Color3.fromRGB(0,255,255),
-    Color3.fromRGB(255,0,255), Color3.fromRGB(64,224,208), Color3.fromRGB(255,215,0)
-}
-
+local espColorIndex = {Murderer = 1, Sheriff = 1, Innocent = 1}
 local espHighlights = {}
-local traces = {}
 local lastAFKJump = 0
 local circleButton = nil
 local menuFrame = nil
 local keyFrame = nil
 
--- FOV Circle
+-- FOV Circle (dorado puro)
 local fovCircle = Drawing.new("Circle")
 fovCircle.Thickness = 2
-fovCircle.Color = Color3.fromRGB(0, 255, 120)
+fovCircle.Color = Color3.fromRGB(255, 215, 0)
 fovCircle.Filled = false
 fovCircle.Transparency = 1
 fovCircle.Visible = false
 fovCircle.Radius = 150
 
 -- =============================================
--- INTRO + KEY SYSTEM
+-- MÓDULO 1: INTRO
 -- =============================================
 local function showIntro()
-    local gui = Instance.new("ScreenGui", CoreGui)
-    local logo = Instance.new("TextLabel", gui)
-    logo.Size = UDim2.new(0.8,0,0.2,0)
-    logo.Position = UDim2.new(0.1,0,0.4,0)
-    logo.Text = "CHRISSHUB V1"
-    logo.TextColor3 = Color3.fromRGB(0,255,120)
+    local introGui = Instance.new("ScreenGui")
+    introGui.Name = "IntroGui"
+    introGui.Parent = CoreGui
+
+    local logo = Instance.new("TextLabel")
+    logo.Size = UDim2.new(0.8, 0, 0.2, 0)
+    logo.Position = UDim2.new(0.1, 0, 0.4, 0)
+    logo.Text = "CHRISSHUB V2"
+    logo.TextColor3 = Color3.fromRGB(0, 255, 120)
     logo.BackgroundTransparency = 1
     logo.Font = Enum.Font.Code
     logo.TextSize = 70
     logo.TextStrokeTransparency = 0.5
+    logo.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    logo.Parent = introGui
 
-    task.wait(4)
-    TweenService:Create(logo, TweenInfo.new(1), {TextTransparency = 1}):Play()
-    task.wait(1.2)
-    gui:Destroy()
-    showKeySystem()
+    -- Lluvia sutil
+    for i = 1, 25 do
+        local line = Instance.new("TextLabel")
+        line.Size = UDim2.new(0.1, 0, 0.05, 0)
+        line.Position = UDim2.new(math.random(), 0, -0.1, 0)
+        line.Text = string.rep(math.random(0,1), math.random(6,12))
+        line.TextColor3 = Color3.fromRGB(0, 255, 120)
+        line.BackgroundTransparency = 1
+        line.Font = Enum.Font.Code
+        line.TextSize = math.random(10, 16)
+        line.Parent = introGui
+
+        spawn(function()
+            while line.Parent do
+                line.Position = UDim2.new(line.Position.X.Scale, 0, line.Position.Y.Scale + 0.008, 0)
+                if line.Position.Y.Scale > 1.2 then
+                    line.Position = UDim2.new(math.random(), 0, -0.1, 0)
+                end
+                task.wait(0.03)
+            end
+        end)
+    end
+
+    task.wait(4.5)
+    local fade = TweenService:Create(logo, TweenInfo.new(1.2), {TextTransparency = 1})
+    fade:Play()
+    fade.Completed:Connect(function()
+        introGui:Destroy()
+        showKeySystem()
+    end)
 end
 
+-- =============================================
+-- MÓDULO 2: KEY SYSTEM (morado neón)
+-- =============================================
 local function showKeySystem()
-    keyFrame = Instance.new("Frame", CoreGui)
-    keyFrame.Size = UDim2.new(0,280,0,160)
-    keyFrame.Position = UDim2.new(0.5,-140,0.5,-80)
-    keyFrame.BackgroundColor3 = Color3.fromRGB(15,15,15)
-    Instance.new("UICorner", keyFrame).CornerRadius = UDim.new(0,12)
+    keyFrame = Instance.new("Frame")
+    keyFrame.Size = UDim2.new(0, 300, 0, 180)
+    keyFrame.Position = UDim2.new(0.5, -150, 0.5, -90)
+    keyFrame.BackgroundColor3 = Color3.fromRGB(30, 10, 50) -- Morado oscuro
+    keyFrame.BorderSizePixel = 0
+    keyFrame.Parent = CoreGui
+    Instance.new("UICorner", keyFrame).CornerRadius = UDim.new(0, 12)
+
+    local stroke = Instance.new("UIStroke", keyFrame)
+    stroke.Color = Color3.fromRGB(180, 0, 255)
+    stroke.Thickness = 2
 
     local title = Instance.new("TextLabel", keyFrame)
-    title.Size = UDim2.new(1,0,0,40)
-    title.Text = "Enter License"
-    title.TextColor3 = Color3.fromRGB(0,255,120)
+    title.Size = UDim2.new(1, 0, 0, 50)
+    title.Text = "ENTER KEY"
+    title.TextColor3 = Color3.fromRGB(180, 0, 255)
     title.BackgroundTransparency = 1
     title.Font = Enum.Font.GothamBold
-    title.TextSize = 22
+    title.TextSize = 24
 
     local input = Instance.new("TextBox", keyFrame)
-    input.Size = UDim2.new(0.8,0,0,45)
-    input.Position = UDim2.new(0.1,0,0.35,0)
-    input.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    input.Size = UDim2.new(0.8, 0, 0, 50)
+    input.Position = UDim2.new(0.1, 0, 0.35, 0)
+    input.BackgroundColor3 = Color3.fromRGB(50, 20, 80)
     input.TextColor3 = Color3.new(1,1,1)
-    input.PlaceholderText = "Enter License..."
+    input.PlaceholderText = "ENTER KEY..."
+    input.Text = ""
     Instance.new("UICorner", input)
 
     local btn = Instance.new("TextButton", keyFrame)
-    btn.Size = UDim2.new(0.8,0,0,45)
-    btn.Position = UDim2.new(0.1,0,0.65,0)
-    btn.BackgroundColor3 = Color3.fromRGB(0,200,100)
+    btn.Size = UDim2.new(0.8, 0, 0, 50)
+    btn.Position = UDim2.new(0.1, 0, 0.65, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
     btn.Text = "VERIFY"
-    btn.TextColor3 = Color3.new(1,1,1)
+    btn.TextColor3 = Color3.new(0,0,0)
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 18
     Instance.new("UICorner", btn)
 
     btn.MouseButton1Click:Connect(function()
-        if table.find(validKeys, input.Text) then
+        local key = input.Text
+        if table.find(validKeys, key) then
             input.Text = "Verifying key..."
             task.wait(5)
             keyFrame:Destroy()
@@ -120,29 +177,35 @@ local function showKeySystem()
         else
             input.Text = ""
             input.PlaceholderText = "Invalid key"
+            input.PlaceholderColor3 = Color3.fromRGB(255, 0, 0)
             task.wait(2)
-            input.PlaceholderText = "Enter License..."
+            input.PlaceholderText = "ENTER KEY..."
+            input.PlaceholderColor3 = Color3.fromRGB(200, 200, 200)
         end
     end)
 end
 
 -- =============================================
--- MENÚ PRINCIPAL (MAIN / ESP / COMBAT)
+-- MÓDULO 3: MENÚ PRINCIPAL (futurista azul neón)
 -- =============================================
 local function showMainMenu()
     menuFrame = Instance.new("Frame", CoreGui)
-    menuFrame.Size = UDim2.new(0, 320, 0, 400)
-    menuFrame.Position = UDim2.new(0.5, -160, 0.5, -200)
-    menuFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+    menuFrame.Size = UDim2.new(0, 340, 0, 420)
+    menuFrame.Position = UDim2.new(0.5, -170, 0.5, -210)
+    menuFrame.BackgroundColor3 = Color3.fromRGB(10, 15, 25)
     menuFrame.BorderSizePixel = 0
     menuFrame.Active = true
     menuFrame.Draggable = true
     Instance.new("UICorner", menuFrame).CornerRadius = UDim.new(0, 12)
 
+    local stroke = Instance.new("UIStroke", menuFrame)
+    stroke.Color = Color3.fromRGB(0, 200, 255)
+    stroke.Thickness = 1.5
+
     -- X grande
     local closeBtn = Instance.new("TextButton", menuFrame)
-    closeBtn.Size = UDim2.new(0, 45, 0, 45)
-    closeBtn.Position = UDim2.new(1, -50, 0, 8)
+    closeBtn.Size = UDim2.new(0, 50, 0, 50)
+    closeBtn.Position = UDim2.new(1, -55, 0, 5)
     closeBtn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
     closeBtn.Text = "X"
     closeBtn.TextColor3 = Color3.new(1,1,1)
@@ -157,91 +220,162 @@ local function showMainMenu()
     -- Título
     local title = Instance.new("TextLabel", menuFrame)
     title.Size = UDim2.new(1,0,0,50)
-    title.Text = "CHRISSHUB V1"
-    title.TextColor3 = Color3.fromRGB(0,255,120)
+    title.Text = "CHRISSHUB V2"
+    title.TextColor3 = Color3.fromRGB(0, 200, 255)
     title.BackgroundTransparency = 1
     title.Font = Enum.Font.GothamBlack
     title.TextSize = 24
 
-    -- TikTok en MAIN
-    local tiktok = Instance.new("TextLabel", menuFrame)
-    tiktok.Size = UDim2.new(1,0,0,30)
-    tiktok.Position = UDim2.new(0,0,0,50)
-    tiktok.Text = "SÍGUEME EN TIKTOK @sasware32"
-    tiktok.TextColor3 = Color3.fromRGB(0,255,120)
-    tiktok.BackgroundTransparency = 1
-    tiktok.Font = Enum.Font.Gotham
-    tiktok.TextSize = 14
+    -- Tabs (MAIN / ESP / COMBAT)
+    local tabButtons = {}
+    local tabContents = {}
 
-    -- Scroll
-    local scroll = Instance.new("ScrollingFrame", menuFrame)
-    scroll.Size = UDim2.new(1,-20,1,-100)
-    scroll.Position = UDim2.new(0,10,0,80)
-    scroll.BackgroundTransparency = 1
-    scroll.ScrollBarThickness = 4
-    scroll.ScrollBarImageColor3 = Color3.fromRGB(0,255,120)
+    local function createTab(name, xPos)
+        local btn = Instance.new("TextButton", menuFrame)
+        btn.Size = UDim2.new(0.33, -5, 0, 40)
+        btn.Position = UDim2.new(xPos, 0, 0, 50)
+        btn.BackgroundColor3 = Color3.fromRGB(20, 25, 35)
+        btn.Text = name
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 16
+        Instance.new("UICorner", btn)
+        btn.Parent = menuFrame
 
-    local function createToggle(name, posY)
-        local btn = Instance.new("TextButton", scroll)
-        btn.Size = UDim2.new(1,0,0,45)
-        btn.Position = UDim2.new(0,0,0,posY)
-        btn.BackgroundColor3 = Color3.fromRGB(25,25,25)
+        local content = Instance.new("ScrollingFrame", menuFrame)
+        content.Size = UDim2.new(1, -20, 1, -110)
+        content.Position = UDim2.new(0, 10, 0, 90)
+        content.BackgroundTransparency = 1
+        content.ScrollBarThickness = 4
+        content.ScrollBarImageColor3 = Color3.fromRGB(0, 200, 255)
+        content.Visible = false
+        content.Parent = menuFrame
+
+        btn.MouseButton1Click:Connect(function()
+            for _, tab in pairs(tabContents) do tab.Visible = false end
+            content.Visible = true
+            for _, b in pairs(tabButtons) do b.BackgroundColor3 = Color3.fromRGB(20, 25, 35) end
+            btn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        end)
+
+        table.insert(tabButtons, btn)
+        tabContents[name] = content
+        return content
+    end
+
+    local mainContent = createTab("MAIN", 0)
+    local espContent = createTab("ESP", 0.33)
+    local combatContent = createTab("COMBAT", 0.66)
+
+    mainContent.Visible = true
+
+    -- =============================================
+    -- MAIN CONTENT
+    -- =============================================
+    local function createToggle(parent, name, posY)
+        local btn = Instance.new("TextButton", parent)
+        btn.Size = UDim2.new(1, -10, 0, 45)
+        btn.Position = UDim2.new(0, 5, 0, posY)
+        btn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
         btn.Text = name .. ": OFF"
-        btn.TextColor3 = Color3.fromRGB(200,200,200)
+        btn.TextColor3 = Color3.fromRGB(200, 200, 200)
         btn.Font = Enum.Font.GothamBold
         btn.TextSize = 16
         Instance.new("UICorner", btn)
         btn.MouseButton1Click:Connect(function()
             toggles[name] = not toggles[name]
             btn.Text = name .. ": " .. (toggles[name] and "ON" or "OFF")
-            btn.BackgroundColor3 = toggles[name] and Color3.fromRGB(0,120,60) or Color3.fromRGB(25,25,25)
+            btn.BackgroundColor3 = toggles[name] and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(25, 25, 35)
+            TweenService:Create(btn, TweenInfo.new(0.15), {Size = UDim2.new(1, -10, 0, 50)}):Play()
+            task.wait(0.15)
+            TweenService:Create(btn, TweenInfo.new(0.15), {Size = UDim2.new(1, -10, 0, 45)}):Play()
         end)
     end
 
-    -- MAIN
-    createToggle("Noclip", 0)
-    createToggle("Speed", 55)
-    createToggle("InfJump", 110)
-    createToggle("AntiAFK", 165)
+    createToggle(mainContent, "Noclip", 0)
+    createToggle(mainContent, "Speed", 55)
+    createToggle(mainContent, "InfJump", 110)
+    createToggle(mainContent, "AntiAFK", 165)
 
-    -- ESP
-    local espTitle = Instance.new("TextLabel", scroll)
-    espTitle.Size = UDim2.new(1,0,0,30)
-    espTitle.Position = UDim2.new(0,0,0,230)
-    espTitle.Text = "ESP"
-    espTitle.TextColor3 = Color3.fromRGB(0,255,120)
-    espTitle.BackgroundTransparency = 1
-    espTitle.Font = Enum.Font.GothamBold
-    espTitle.TextSize = 18
+    local tiktokLabel = Instance.new("TextLabel", mainContent)
+    tiktokLabel.Size = UDim2.new(1, -10, 0, 80)
+    tiktokLabel.Position = UDim2.new(0, 5, 0, 220)
+    tiktokLabel.Text = "SÍGUEME EN TIKTOK @sasware32 para sugerencias y errores en mi Script"
+    tiktokLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+    tiktokLabel.BackgroundTransparency = 1
+    tiktokLabel.Font = Enum.Font.Gotham
+    tiktokLabel.TextSize = 14
+    tiktokLabel.TextWrapped = true
 
-    createToggle("ESP", 260)
+    -- =============================================
+    -- ESP CONTENT (toggles + colores)
+    -- =============================================
+    local espToggles = {}
+    local function createESPToggle(name, posY)
+        local btn = Instance.new("TextButton", espContent)
+        btn.Size = UDim2.new(1, -10, 0, 45)
+        btn.Position = UDim2.new(0, 5, 0, posY)
+        btn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        btn.Text = name .. ": OFF"
+        btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 16
+        Instance.new("UICorner", btn)
+        btn.MouseButton1Click:Connect(function()
+            toggles[name] = not toggles[name]
+            btn.Text = name .. ": " .. (toggles[name] and "ON" or "OFF")
+            btn.BackgroundColor3 = toggles[name] and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(25, 25, 35)
+        end)
+        table.insert(espToggles, btn)
+    end
 
-    -- COMBAT
-    local combatTitle = Instance.new("TextLabel", scroll)
-    combatTitle.Size = UDim2.new(1,0,0,30)
-    combatTitle.Position = UDim2.new(0,0,0,310)
-    combatTitle.Text = "COMBAT"
-    combatTitle.TextColor3 = Color3.fromRGB(0,255,120)
-    combatTitle.BackgroundTransparency = 1
-    combatTitle.Font = Enum.Font.GothamBold
-    combatTitle.TextSize = 18
+    createESPToggle("ESP ASESINO", 0)
+    createESPToggle("ESP SHERIFF", 55)
+    createESPToggle("ESP INOCENTE", 110)
 
-    createToggle("Aimbot", 340)
-    createToggle("KillAura", 395)
-    createToggle("TPSheriff", 450)
+    -- =============================================
+    -- COMBAT CONTENT
+    -- =============================================
+    local combatToggles = {}
+    local function createCombatToggle(name, posY)
+        local btn = Instance.new("TextButton", combatContent)
+        btn.Size = UDim2.new(1, -10, 0, 45)
+        btn.Position = UDim2.new(0, 5, 0, posY)
+        btn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        btn.Text = name .. ": OFF"
+        btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 16
+        Instance.new("UICorner", btn)
+        btn.MouseButton1Click:Connect(function()
+            toggles[name] = not toggles[name]
+            btn.Text = name .. ": " .. (toggles[name] and "ON" or "OFF")
+            btn.BackgroundColor3 = toggles[name] and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(25, 25, 35)
+        end)
+        table.insert(combatToggles, btn)
+    end
 
-    -- Círculo al cerrar
+    createCombatToggle("Aimbot", 0)
+    createCombatToggle("KillAura", 55)
+    createCombatToggle("TP Sheriff", 110)
+
+    -- =============================================
+    -- CÍRCULO CH-HUB
+    -- =============================================
     local function showHubCircle()
         if circleButton then return end
         circleButton = Instance.new("TextButton", CoreGui)
-        circleButton.Size = UDim2.new(0,70,0,70)
-        circleButton.Position = UDim2.new(0.5,-35,0,20)
-        circleButton.BackgroundColor3 = Color3.fromRGB(0,0,0)
+        circleButton.Size = UDim2.new(0, 80, 0, 80)
+        circleButton.Position = UDim2.new(0.5, -40, 0, 20)
+        circleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         circleButton.Text = "CH-HUB"
-        circleButton.TextColor3 = Color3.fromRGB(0,255,120)
+        circleButton.TextColor3 = Color3.fromRGB(0, 200, 255)
         circleButton.Font = Enum.Font.GothamBlack
         circleButton.TextSize = 18
-        Instance.new("UICorner", circleButton).CornerRadius = UDim.new(1,0)
+        Instance.new("UICorner", circleButton).CornerRadius = UDim.new(1, 0)
+        Instance.new("UIStroke", circleButton).Color = Color3.fromRGB(0, 200, 255)
+        Instance.new("UIStroke", circleButton).Thickness = 2
+
         circleButton.MouseButton1Click:Connect(function()
             menuFrame.Visible = true
             circleButton:Destroy()
@@ -249,7 +383,126 @@ local function showMainMenu()
         end)
     end
 
-    print("[CHRISSHUB V2.2] Menú cargado.")
+    -- =============================================
+    -- FUNCIONES
+    -- =============================================
+
+    -- ESP
+    local function addESP(plr)
+        if plr == player then return end
+        
+        local function update(char)
+            if espHighlights[plr] then espHighlights[plr]:Destroy() end
+            local hl = Instance.new("Highlight")
+            hl.Parent = char
+            hl.FillTransparency = 0.5
+            hl.OutlineTransparency = 0
+            hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            espHighlights[plr] = hl
+        end
+        
+        if plr.Character then update(plr.Character) end
+        plr.CharacterAdded:Connect(update)
+    end
+
+    for _, plr in Players:GetPlayers() do addESP(plr) end
+    Players.PlayerAdded:Connect(addESP)
+
+    -- Loop principal
+    RunService.Heartbeat:Connect(function()
+        local char = player.Character
+        if not char then return end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+        local hum = char:FindFirstChild("Humanoid")
+
+        -- Anti-AFK
+        if toggles.AntiAFK and hum and tick() - lastAFKJump > 30 then
+            hum:ChangeState(Enum.HumanoidStateType.Jumping)
+            lastAFKJump = tick()
+        end
+
+        -- ESP
+        if toggles.ESP then
+            for plr, hl in pairs(espHighlights) do
+                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    local role = "Innocent"
+                    if plr.Character:FindFirstChild("Knife") then role = "Murderer" end
+                    if plr.Character:FindFirstChild("Gun") then role = "Sheriff" end
+                    hl.Enabled = true
+                    hl.FillColor = espColors[role]
+                    hl.OutlineColor = espColors[role]
+                end
+            end
+        else
+            for _, hl in pairs(espHighlights) do hl.Enabled = false end
+        end
+
+        -- Kill Aura 40 studs
+        if toggles.KillAura and char:FindFirstChild("Knife") then
+            for _, plr in Players:GetPlayers() do
+                if plr \~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    local dist = (root.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+                    if dist <= 40 then
+                        char.Knife.Handle.CFrame = plr.Character.HumanoidRootPart.CFrame
+                    end
+                end
+            end
+        end
+
+        -- Aimbot con FOV
+        if toggles.Aimbot then
+            local closest, dist = nil, math.huge
+            local camPos = camera.CFrame.Position
+            
+            for _, plr in Players:GetPlayers() do
+                if plr \~= player and plr.Character and plr.Character:FindFirstChild("Head") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 and plr.Character:FindFirstChild("Knife") then
+                    local head = plr.Character.Head
+                    local screenPos, onScreen = camera:WorldToViewportPoint(head.Position)
+                    if onScreen then
+                        local d = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)).Magnitude
+                        if d < 180 and d < dist then
+                            closest = head
+                            dist = d
+                        end
+                    end
+                end
+            end
+            
+            if closest then
+                local direction = (closest.Position - camPos).Unit
+                camera.CFrame = CFrame.new(camPos, camPos + direction * 1000)
+            end
+        end
+
+        -- TP Sheriff (solo si vivo)
+        if toggles.TPSheriff then
+            for _, plr in Players:GetPlayers() do
+                if plr.Character and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 and plr.Character:FindFirstChild("Gun") then
+                    root.CFrame = plr.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
+                    break
+                end
+            end
+        end
+    end)
+
+    -- Noclip
+    RunService.Stepped:Connect(function()
+        if toggles.Noclip and player.Character then
+            for _, part in ipairs(player.Character:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = false end
+            end
+        end
+    end)
+
+    -- Inf Jump
+    UserInputService.JumpRequest:Connect(function()
+        if toggles.InfJump and player.Character then
+            player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end)
+
+    print("[CHRISSHUB V2] Cargado.")
 end
 
 -- Iniciar
