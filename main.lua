@@ -1,4 +1,7 @@
--- CHRISSHUB V2 - SCRIPT COMPLETO MÓVIL (futurista azul neón)
+local _CH_LOAD = true; -- Fix Línea 1: Referencia de inicio para el ejecutor
+-- CHRISSHUB V2 - SCRIPT COMPLETO MÓVIL (futurista azul neón, tabs separados)
+-- Intro verde neón + Key morado + Menú MAIN/ESP/COMBAT + FOV dorado + Kill Aura 40 + TP Sheriff solo vivo
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -308,7 +311,6 @@ local function showMainMenu()
     -- =============================================
     -- ESP CONTENT (toggles + colores)
     -- =============================================
-    local espToggles = {}
     local function createESPToggle(name, posY)
         local btn = Instance.new("TextButton", espContent)
         btn.Size = UDim2.new(1, -10, 0, 45)
@@ -324,7 +326,6 @@ local function showMainMenu()
             btn.Text = name .. ": " .. (toggles[name] and "ON" or "OFF")
             btn.BackgroundColor3 = toggles[name] and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(25, 25, 35)
         end)
-        table.insert(espToggles, btn)
     end
 
     createESPToggle("ESP ASESINO", 0)
@@ -334,7 +335,6 @@ local function showMainMenu()
     -- =============================================
     -- COMBAT CONTENT
     -- =============================================
-    local combatToggles = {}
     local function createCombatToggle(name, posY)
         local btn = Instance.new("TextButton", combatContent)
         btn.Size = UDim2.new(1, -10, 0, 45)
@@ -350,7 +350,6 @@ local function showMainMenu()
             btn.Text = name .. ": " .. (toggles[name] and "ON" or "OFF")
             btn.BackgroundColor3 = toggles[name] and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(25, 25, 35)
         end)
-        table.insert(combatToggles, btn)
     end
 
     createCombatToggle("Aimbot", 0)
@@ -439,7 +438,7 @@ local function showMainMenu()
         -- Kill Aura 40 studs
         if toggles.KillAura and char:FindFirstChild("Knife") then
             for _, plr in Players:GetPlayers() do
-                if plr \~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                     local dist = (root.Position - plr.Character.HumanoidRootPart.Position).Magnitude
                     if dist <= 40 then
                         char.Knife.Handle.CFrame = plr.Character.HumanoidRootPart.CFrame
@@ -454,7 +453,7 @@ local function showMainMenu()
             local camPos = camera.CFrame.Position
             
             for _, plr in Players:GetPlayers() do
-                if plr \~= player and plr.Character and plr.Character:FindFirstChild("Head") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 and plr.Character:FindFirstChild("Knife") then
+                if plr ~= player and plr.Character and plr.Character:FindFirstChild("Head") and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 and plr.Character:FindFirstChild("Knife") then
                     local head = plr.Character.Head
                     local screenPos, onScreen = camera:WorldToViewportPoint(head.Position)
                     if onScreen then
