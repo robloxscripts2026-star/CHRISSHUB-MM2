@@ -15,8 +15,16 @@ local CH_DATA = {
     Toggles = {
         Noclip = false, WalkSpeed = false, InfJump = false,
         KillAura = false, AimbotLegit = false, TPSheriff = false,
-        ESP_Murd = false, ESP_Sheriff = false, ESP_Inno = false -- ESP SEPARADO
+        ESP_Murd = false, ESP_Sheriff = false, ESP_Inno = false
     }
+}
+
+-- [ BASE DE DATOS DE TUS 10 KEYS ]
+local keyDatabase = {
+    "CHKEY_8621973540", "CHKEY_3917528640", "CHKEY_7149265830",
+    "CHKEY_9361852740", "CHKEY_6297148350", "CHKEY_5813927640",
+    "CHKEY_2751839640", "CHKEY_4178392560", "CHKEY_1593728460",
+    "CHKEY_8326915740"
 }
 
 -- [ FUNCIÓN DE ROL ORIGINAL ]
@@ -64,7 +72,7 @@ end
 for _, v in pairs(Players:GetPlayers()) do CreateESP(v) end
 Players.PlayerAdded:Connect(CreateESP)
 
--- [ FUNCIONES DE COMBATE Y MOVIMIENTO ]
+-- [ FUNCIONES DE COMBATE Y MOVIMIENTO (TUS ORIGINALES) ]
 RunService.RenderStepped:Connect(function()
     if not lp.Character or not lp.Character:FindFirstChild("HumanoidRootPart") then return end
     
@@ -92,13 +100,18 @@ RunService.RenderStepped:Connect(function()
     end
     
     if CH_DATA.Toggles.WalkSpeed then lp.Character.Humanoid.WalkSpeed = 50 end
+    if CH_DATA.Toggles.Noclip then
+        for _, v in pairs(lp.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.CanCollide = false end
+        end
+    end
 end)
 
 UserInputService.JumpRequest:Connect(function()
     if CH_DATA.Toggles.InfJump and lp.Character then lp.Character.Humanoid:ChangeState(3) end
 end)
 
--- [ INTERFAZ - TU MENÚ INCREÍBLE ]
+-- [ INTERFAZ - TU MENÚ GRID INCREÍBLE ]
 local function BuildMainUI()
     local MainGui = Instance.new("ScreenGui", CoreGui)
     local MainFrame = Instance.new("Frame", MainGui)
@@ -121,8 +134,7 @@ local function BuildMainUI()
         p.Size = UDim2.new(1, 0, 1, 0); p.BackgroundTransparency = 1; p.Visible = false
         Instance.new("UIGridLayout", p).CellSize = UDim2.new(0, 95, 0, 55)
         local b = Instance.new("TextButton", TabContainer)
-        b.Size = UDim2.new(1, 0, 0, 35); b.Text = name; b.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-        b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b)
+        b.Size = UDim2.new(1, 0, 0, 35); b.Text = name; b.BackgroundColor3 = Color3.fromRGB(20, 20, 30); b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b)
         b.MouseButton1Click:Connect(function()
             for _, v in pairs(pages) do v.Visible = false end
             p.Visible = true
@@ -142,15 +154,24 @@ local function BuildMainUI()
             CH_DATA.Toggles[tKey] = not CH_DATA.Toggles[tKey]
             s.Color = CH_DATA.Toggles[tKey] and Color3.new(0,1,1) or Color3.fromRGB(40,40,50)
             btn.TextColor3 = CH_DATA.Toggles[tKey] and Color3.new(1,1,1) or Color3.new(0.6,0.6,0.6)
+            
+            -- TP Sheriff Especial
+            if tKey == "TPSheriff" and CH_DATA.Toggles.TPSheriff then
+                for _, p in pairs(Players:GetPlayers()) do
+                    if GetRole(p) == "Sheriff" and p.Character then
+                        lp.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+                        CH_DATA.Toggles.TPSheriff = false
+                        s.Color = Color3.fromRGB(40,40,50); btn.TextColor3 = Color3.new(0.6,0.6,0.6)
+                        break
+                    end
+                end
+            end
         end)
     end
 
-    AddItem(mP, "SPEED", "WalkSpeed"); AddItem(mP, "INF JUMP", "InfJump")
+    AddItem(mP, "SPEED", "WalkSpeed"); AddItem(mP, "INF JUMP", "InfJump"); AddItem(mP, "NOCLIP", "Noclip")
     AddItem(cP, "KILL AURA", "KillAura"); AddItem(cP, "AIMBOT", "AimbotLegit"); AddItem(cP, "TP SHERIFF", "TPSheriff")
-    -- EL ESP QUE PEDISTE
-    AddItem(eP, "ESP ASESINO", "ESP_Murd")
-    AddItem(eP, "ESP SERIFF", "ESP_Sheriff")
-    AddItem(eP, "ESP INOCENTE", "ESP_Inno")
+    AddItem(eP, "ESP ASESINO", "ESP_Murd"); AddItem(eP, "ESP SERIFF", "ESP_Sheriff"); AddItem(eP, "ESP INOCENTE", "ESP_Inno")
 
     local Circle = Instance.new("TextButton", MainGui)
     Circle.Size = UDim2.new(0, 60, 0, 60); Circle.Position = UDim2.new(0, 20, 0, 20); Circle.Text = "CH-HUB"
@@ -166,16 +187,21 @@ local function StartSystem()
     task.wait(3)
     IntroGui:Destroy()
 
-    -- SISTEMA KEY (Aparece después de la Intro)
+    -- SISTEMA KEY
     local KeyGui = Instance.new("ScreenGui", CoreGui)
-    local F = Instance.new("Frame", KeyGui); F.Size = UDim2.new(0,300,0,200); F.Position = UDim2.new(0.5,-150,0.5,-100); F.BackgroundColor3 = Color3.fromRGB(15,15,20)
-    local I = Instance.new("TextBox", F); I.Size = UDim2.new(0.8,0,0,40); I.Position = UDim2.new(0.1,0,0.3,0); I.PlaceholderText = "KEY..."
-    local B = Instance.new("TextButton", F); B.Size = UDim2.new(0.8,0,0,40); B.Position = UDim2.new(0.1,0,0.7,0); B.Text = "VERIFY"; B.BackgroundColor3 = Color3.new(0,0.5,1)
+    local F = Instance.new("Frame", KeyGui); F.Size = UDim2.new(0,320,0,220); F.Position = UDim2.new(0.5,-160,0.5,-110); F.BackgroundColor3 = Color3.fromRGB(15,15,20)
+    Instance.new("UIStroke", F).Color = Color3.fromRGB(180, 0, 255); Instance.new("UICorner", F)
+    
+    local I = Instance.new("TextBox", F); I.Size = UDim2.new(0.8,0,0,45); I.Position = UDim2.new(0.1,0,0.35,0); I.PlaceholderText = "ENTER YOUR KEY..."; I.Text = ""
+    local B = Instance.new("TextButton", F); B.Size = UDim2.new(0.8,0,0,45); B.Position = UDim2.new(0.1,0,0.7,0); B.Text = "VERIFY KEY"; B.BackgroundColor3 = Color3.fromRGB(180, 0, 255); B.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", B)
     
     B.MouseButton1Click:Connect(function()
-        if I.Text == "CHKEY_8621973540" then -- Ejemplo de una de tus keys
+        if table.find(keyDatabase, I.Text) then
             KeyGui:Destroy()
             BuildMainUI()
+        else
+            I.Text = ""; I.PlaceholderText = "INVALID KEY!"
         end
     end)
 end
